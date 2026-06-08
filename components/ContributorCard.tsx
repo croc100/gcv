@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Contributor } from "@/lib/github";
+import { Contributor } from "@/lib/types";
 
 interface ContributorCardProps {
   contributor: Contributor;

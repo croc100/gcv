@@ -3,7 +3,7 @@
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from "recharts";
-import { Contributor } from "@/lib/github";
+import { Contributor } from "@/lib/types";
 
 interface ContributorChartProps {
   contributors: Contributor[];

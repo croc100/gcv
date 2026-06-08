@@ -6,7 +6,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import ContributorCard from "@/components/ContributorCard";
 import PeriodFilter, { Period } from "@/components/PeriodFilter";
-import { Contributor } from "@/lib/github";
+import type { Contributor } from "@/lib/types";
 
 const ContributorChart = dynamic(() => import("@/components/ContributorChart"), { ssr: false });
 const GrowthChart = dynamic(() => import("@/components/GrowthChart"), { ssr: false });

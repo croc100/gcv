@@ -5,16 +5,3 @@ export function createOctokit(token?: string) {
     auth: token || process.env.GITHUB_TOKEN,
   });
 }
-
-export type Contributor = {
-  login: string;
-  avatar_url: string;
-  html_url: string;
-  contributions: number;
-};
-
-export type WeeklyStats = {
-  week: number;
-  author: string;
-  total: number;
-};
