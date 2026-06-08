@@ -21,7 +21,7 @@ export default function OGShareModal({ owner, repo, contributors, onClose }: OGS
   function buildUrl() {
     const c = contributors
       .filter((c) => selected.has(c.login))
-      .map((c) => `${c.login}:${c.contributions}:${encodeURIComponent(c.avatar_url)}`)
+      .map((c) => `${c.login}:${c.contributions}`)
       .join(",");
     return `${base}/api/og?owner=${owner}&repo=${repo}&c=${encodeURIComponent(c)}`;
   }
