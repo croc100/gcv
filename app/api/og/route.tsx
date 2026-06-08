@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
               GCV
             </div>
             <div style={{ fontSize: 32, fontWeight: 700, color: "#e6edf3", marginTop: 4 }}>
-              {owner}/{repo}
+              {`${owner}/${repo}`}
             </div>
           </div>
         </div>
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <span style={{ fontSize: 16, fontWeight: 600, color: "#e6edf3" }}>{login}</span>
                 <span style={{ fontSize: 13, color: "#7d8590", marginTop: 2 }}>
-                  {commits} commits
+                  {`${commits} commits`}
                 </span>
               </div>
             </div>
