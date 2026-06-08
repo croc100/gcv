@@ -32,11 +32,13 @@ export default function ContributorDrawer({ login, onClose }: ContributorDrawerP
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!login) return;
     setUser(null);
     setRepos([]);
+    setFetchError(null);
     setLoading(true);
 
     const token = localStorage.getItem("github_token") ?? "";
@@ -45,10 +47,12 @@ export default function ContributorDrawer({ login, onClose }: ContributorDrawerP
 
     fetch(`/api/github/user?login=${login}`, { headers })
       .then((r) => r.json())
-      .then(({ user, repos }) => {
+      .then(({ user, repos, error }) => {
+        if (error) { setFetchError(error); return; }
         setUser(user);
         setRepos(repos ?? []);
       })
+      .catch((e) => setFetchError(e.message ?? "Failed to load profile"))
       .finally(() => setLoading(false));
   }, [login]);
 
@@ -82,7 +86,11 @@ export default function ContributorDrawer({ login, onClose }: ContributorDrawerP
             </div>
           )}
 
-          {!loading && user && (
+          {!loading && fetchError && (
+            <p className="text-xs text-[#f85149] text-center py-16">{fetchError}</p>
+          )}
+
+          {!loading && !fetchError && user && (
             <div className="flex flex-col gap-5">
               {/* Profile */}
               <div className="flex flex-col items-center gap-3 text-center">

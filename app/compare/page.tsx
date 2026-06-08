@@ -114,7 +114,7 @@ export default function ComparePage() {
           </button>
         </div>
 
-        {(dataA.loading || dataB.loading || dataA.contributors.length > 0) && (
+        {(dataA.loading || dataB.loading || dataA.contributors.length > 0 || dataB.contributors.length > 0) && (
           <>
             {/* Stats comparison */}
             <div className="grid grid-cols-3 gap-4 mb-6">

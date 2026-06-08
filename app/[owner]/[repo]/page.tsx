@@ -116,6 +116,7 @@ export default function RepoPage() {
   const [showOG, setShowOG] = useState(false);
 
   const periodRef = useRef(false);
+  const statsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const saved = localStorage.getItem("github_token") ?? "";
@@ -143,9 +144,14 @@ export default function RepoPage() {
       const data = await res.json();
       if (Array.isArray(data)) { setStats(data); setStatsLoading(false); return; }
     }
-    if (attempt < 5) setTimeout(() => fetchStats(headers, attempt + 1), 3000);
-    else setStatsLoading(false);
+    if (attempt < 5) {
+      statsTimerRef.current = setTimeout(() => fetchStats(headers, attempt + 1), 3000);
+    } else setStatsLoading(false);
   }, [owner, repo]);
+
+  useEffect(() => {
+    return () => { if (statsTimerRef.current) clearTimeout(statsTimerRef.current); };
+  }, []);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
