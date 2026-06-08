@@ -85,6 +85,7 @@ export default function RepoPage() {
 
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [stats, setStats] = useState<StatsEntry[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [period, setPeriod] = useState<Period>("MAX");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -98,17 +99,33 @@ export default function RepoPage() {
     setTokenDraft(saved);
   }, []);
 
+  const fetchStats = useCallback(async (headers: Record<string, string>, attempt = 0) => {
+    const res = await fetch(`/api/github/stats?owner=${owner}&repo=${repo}`, { headers });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setStats(data);
+        setStatsLoading(false);
+        return;
+      }
+    }
+    // GitHub computes stats asynchronously — retry up to 5 times
+    if (attempt < 5) {
+      setTimeout(() => fetchStats(headers, attempt + 1), 3000);
+    } else {
+      setStatsLoading(false);
+    }
+  }, [owner, repo]);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
+    setStatsLoading(true);
     setError("");
     try {
       const headers: Record<string, string> = {};
       if (token) headers["x-github-token"] = token;
 
-      const [cRes, sRes] = await Promise.all([
-        fetch(`/api/github/contributors?owner=${owner}&repo=${repo}`, { headers }),
-        fetch(`/api/github/stats?owner=${owner}&repo=${repo}`, { headers }),
-      ]);
+      const cRes = await fetch(`/api/github/contributors?owner=${owner}&repo=${repo}`, { headers });
 
       if (!cRes.ok) {
         const e = await cRes.json();
@@ -118,16 +135,14 @@ export default function RepoPage() {
       const cData = await cRes.json();
       setContributors(Array.isArray(cData) ? cData : []);
 
-      if (sRes.ok) {
-        const sData = await sRes.json();
-        if (Array.isArray(sData)) setStats(sData);
-      }
+      fetchStats(headers);
     } catch (e: unknown) {
       setError((e as Error).message);
+      setStatsLoading(false);
     } finally {
       setLoading(false);
     }
-  }, [owner, repo, token]);
+  }, [owner, repo, token, fetchStats]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -256,7 +271,14 @@ export default function RepoPage() {
               </div>
               <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
                 <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-4">Contributor growth</p>
-                <GrowthChart data={growthData} />
+                {statsLoading ? (
+                  <div className="flex flex-col items-center justify-center h-[280px] gap-2">
+                    <div className="w-4 h-4 border-2 border-[#388bfd] border-t-transparent rounded-full animate-spin" />
+                    <p className="text-xs text-[#484f58]">GitHub is computing stats…</p>
+                  </div>
+                ) : (
+                  <GrowthChart data={growthData} />
+                )}
               </div>
             </div>
 
