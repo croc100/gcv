@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Contributor } from "@/lib/types";
 
 interface OGShareModalProps {
@@ -15,6 +15,7 @@ export default function OGShareModal({ owner, repo, contributors, onClose }: OGS
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const base = typeof window !== "undefined" ? window.location.origin : "";
 
@@ -33,11 +34,22 @@ export default function OGShareModal({ owner, repo, contributors, onClose }: OGS
       return next;
     });
     setPreviewUrl(null);
+    setGenerating(false);
+  }
+
+  function stopGenerating() {
+    setGenerating(false);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }
 
   function create() {
+    // Reset preview first so spinner shows, then set URL on next tick
+    setPreviewUrl(null);
     setGenerating(true);
-    setPreviewUrl(buildUrl());
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    // Fallback: reset after 15s if image never loads or errors
+    timeoutRef.current = setTimeout(() => setGenerating(false), 15000);
+    setTimeout(() => setPreviewUrl(buildUrl()), 0);
   }
 
   function copy() {
@@ -92,24 +104,25 @@ export default function OGShareModal({ owner, repo, contributors, onClose }: OGS
             ))}
           </div>
 
+          {/* Spinner while generating */}
+          {generating && (
+            <div className="flex justify-center py-8">
+              <div className="w-5 h-5 border-2 border-[#388bfd] border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+
           {/* Preview */}
           {previewUrl && (
-            <div>
+            <div style={{ display: generating ? "none" : "block" }}>
               <p className="text-[10px] font-medium text-[#484f58] uppercase tracking-widest mb-2">Preview</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={previewUrl}
                 alt="OG preview"
-                onLoad={() => setGenerating(false)}
-                onError={() => setGenerating(false)}
+                onLoad={stopGenerating}
+                onError={stopGenerating}
                 className="w-full rounded-lg border border-[#21262d]"
               />
-            </div>
-          )}
-
-          {generating && !previewUrl && (
-            <div className="flex justify-center py-8">
-              <div className="w-5 h-5 border-2 border-[#388bfd] border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>
@@ -117,7 +130,7 @@ export default function OGShareModal({ owner, repo, contributors, onClose }: OGS
         {/* Footer */}
         <div className="flex items-center gap-3 px-5 py-4 border-t border-[#21262d] shrink-0">
           <span className="text-xs text-[#484f58] flex-1">{selected.size} contributor{selected.size !== 1 ? "s" : ""} selected</span>
-          {previewUrl && (
+          {previewUrl && !generating && (
             <button
               onClick={copy}
               className="px-4 py-2 text-xs rounded-lg border border-[#30363d] text-[#7d8590] hover:text-[#e6edf3] hover:border-[#388bfd] transition-colors"
@@ -125,7 +138,7 @@ export default function OGShareModal({ owner, repo, contributors, onClose }: OGS
               {copied ? "Copied!" : "Copy URL"}
             </button>
           )}
-          {previewUrl && (
+          {previewUrl && !generating && (
             <a
               href={previewUrl}
               target="_blank"
@@ -140,7 +153,7 @@ export default function OGShareModal({ owner, repo, contributors, onClose }: OGS
             disabled={selected.size === 0 || generating}
             className="px-4 py-2 text-xs rounded-lg bg-[#238636] hover:bg-[#2ea043] disabled:opacity-40 text-white transition-colors"
           >
-            {generating ? "Generating..." : "Create image"}
+            {generating ? "Generating..." : previewUrl ? "Regenerate" : "Create image"}
           </button>
         </div>
       </div>

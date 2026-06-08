@@ -177,8 +177,12 @@ export default function RepoPage() {
 
   function saveToken() {
     setToken(tokenDraft);
-    localStorage.setItem("github_token", tokenDraft);
     setShowTokenInput(false);
+    try {
+      localStorage.setItem("github_token", tokenDraft);
+    } catch {
+      // token works for current session but won't persist if storage is full
+    }
   }
 
   function exitShareMode() {
