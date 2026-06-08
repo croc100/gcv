@@ -3,26 +3,53 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
+async function toDataUri(url: string): Promise<string> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return "";
+    const buf = await res.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = "";
+    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+    const ct = res.headers.get("content-type") ?? "image/jpeg";
+    return `data:${ct};base64,${btoa(binary)}`;
+  } catch {
+    return "";
+  }
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const owner = searchParams.get("owner") ?? "";
   const repo = searchParams.get("repo") ?? "";
   const raw = searchParams.get("c") ?? "";
 
-  const contributors = raw
+  const parsed = raw
     .split(",")
     .filter(Boolean)
     .slice(0, 9)
     .map((item) => {
-      const [login, commits, avatar] = item.split(":");
-      return {
-        login,
-        commits: Number(commits) || 0,
-        avatar: avatar
-          ? decodeURIComponent(avatar)
-          : `https://avatars.githubusercontent.com/${login}`,
-      };
+      const colonIdx1 = item.indexOf(":");
+      const colonIdx2 = item.indexOf(":", colonIdx1 + 1);
+      const login = item.slice(0, colonIdx1);
+      const commits = Number(item.slice(colonIdx1 + 1, colonIdx2 >= 0 ? colonIdx2 : undefined)) || 0;
+      const avatarEncoded = colonIdx2 >= 0 ? item.slice(colonIdx2 + 1) : "";
+      let avatar = "";
+      try {
+        avatar = avatarEncoded ? decodeURIComponent(avatarEncoded) : "";
+      } catch {
+        avatar = "";
+      }
+      return { login, commits, avatar };
     });
+
+  const contributors = await Promise.all(
+    parsed.map(async ({ login, commits, avatar }) => ({
+      login,
+      commits,
+      avatarData: avatar ? await toDataUri(avatar) : "",
+    }))
+  );
 
   return new ImageResponse(
     (
@@ -51,7 +78,7 @@ export async function GET(request: NextRequest) {
 
         {/* Contributors grid */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 16, flex: 1 }}>
-          {contributors.map(({ login, commits, avatar }) => (
+          {contributors.map(({ login, commits, avatarData }) => (
             <div
               key={login}
               style={{
@@ -65,14 +92,32 @@ export async function GET(request: NextRequest) {
                 minWidth: 200,
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={avatar}
-                width={48}
-                height={48}
-                style={{ borderRadius: "50%" }}
-                alt={login}
-              />
+              {avatarData ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarData}
+                  width={48}
+                  height={48}
+                  style={{ borderRadius: "50%" }}
+                  alt={login}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    background: "#21262d",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                    color: "#7d8590",
+                  }}
+                >
+                  {login[0]?.toUpperCase()}
+                </div>
+              )}
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <span style={{ fontSize: 16, fontWeight: 600, color: "#e6edf3" }}>{login}</span>
                 <span style={{ fontSize: 13, color: "#7d8590", marginTop: 2 }}>

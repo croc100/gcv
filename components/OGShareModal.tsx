@@ -11,19 +11,20 @@ interface OGShareModalProps {
 }
 
 export default function OGShareModal({ owner, repo, contributors, onClose }: OGShareModalProps) {
-  const [selected, setSelected] = useState<Set<string>>(
-    new Set(contributors.slice(0, 6).map((c) => c.login))
-  );
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const base = typeof window !== "undefined" ? window.location.origin : "";
 
-  const c = contributors
-    .filter((c) => selected.has(c.login))
-    .map((c) => `${c.login}:${c.contributions}:${encodeURIComponent(c.avatar_url)}`)
-    .join(",");
-
-  const ogUrl = `${base}/api/og?owner=${owner}&repo=${repo}&c=${encodeURIComponent(c)}`;
+  function buildUrl() {
+    const c = contributors
+      .filter((c) => selected.has(c.login))
+      .map((c) => `${c.login}:${c.contributions}:${encodeURIComponent(c.avatar_url)}`)
+      .join(",");
+    return `${base}/api/og?owner=${owner}&repo=${repo}&c=${encodeURIComponent(c)}`;
+  }
 
   function toggle(login: string) {
     setSelected((prev) => {
@@ -31,10 +32,17 @@ export default function OGShareModal({ owner, repo, contributors, onClose }: OGS
       if (next.has(login)) { next.delete(login); } else { next.add(login); }
       return next;
     });
+    setPreviewUrl(null);
+  }
+
+  function create() {
+    setGenerating(true);
+    setPreviewUrl(buildUrl());
   }
 
   function copy() {
-    navigator.clipboard.writeText(ogUrl);
+    if (!previewUrl) return;
+    navigator.clipboard.writeText(previewUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
@@ -85,15 +93,23 @@ export default function OGShareModal({ owner, repo, contributors, onClose }: OGS
           </div>
 
           {/* Preview */}
-          {selected.size > 0 && (
+          {previewUrl && (
             <div>
               <p className="text-[10px] font-medium text-[#484f58] uppercase tracking-widest mb-2">Preview</p>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={ogUrl}
+                src={previewUrl}
                 alt="OG preview"
+                onLoad={() => setGenerating(false)}
+                onError={() => setGenerating(false)}
                 className="w-full rounded-lg border border-[#21262d]"
               />
+            </div>
+          )}
+
+          {generating && !previewUrl && (
+            <div className="flex justify-center py-8">
+              <div className="w-5 h-5 border-2 border-[#388bfd] border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>
@@ -101,21 +117,31 @@ export default function OGShareModal({ owner, repo, contributors, onClose }: OGS
         {/* Footer */}
         <div className="flex items-center gap-3 px-5 py-4 border-t border-[#21262d] shrink-0">
           <span className="text-xs text-[#484f58] flex-1">{selected.size} contributor{selected.size !== 1 ? "s" : ""} selected</span>
+          {previewUrl && (
+            <button
+              onClick={copy}
+              className="px-4 py-2 text-xs rounded-lg border border-[#30363d] text-[#7d8590] hover:text-[#e6edf3] hover:border-[#388bfd] transition-colors"
+            >
+              {copied ? "Copied!" : "Copy URL"}
+            </button>
+          )}
+          {previewUrl && (
+            <a
+              href={previewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 text-xs rounded-lg border border-[#30363d] text-[#7d8590] hover:text-[#e6edf3] hover:border-[#388bfd] transition-colors"
+            >
+              Open image
+            </a>
+          )}
           <button
-            onClick={copy}
-            disabled={selected.size === 0}
-            className="px-4 py-2 text-xs rounded-lg border border-[#30363d] text-[#7d8590] hover:text-[#e6edf3] hover:border-[#388bfd] transition-colors disabled:opacity-40"
+            onClick={create}
+            disabled={selected.size === 0 || generating}
+            className="px-4 py-2 text-xs rounded-lg bg-[#238636] hover:bg-[#2ea043] disabled:opacity-40 text-white transition-colors"
           >
-            {copied ? "Copied!" : "Copy image URL"}
+            {generating ? "Generating..." : "Create image"}
           </button>
-          <a
-            href={ogUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-4 py-2 text-xs rounded-lg bg-[#238636] hover:bg-[#2ea043] text-white transition-colors"
-          >
-            Open image
-          </a>
         </div>
       </div>
     </div>
