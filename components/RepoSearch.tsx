@@ -16,7 +16,7 @@ export default function RepoSearch() {
     const parts = trimmed.split("/").filter(Boolean);
 
     if (parts.length < 2) {
-      setError("owner/repo 형식으로 입력해주세요 (예: vercel/next.js)");
+      setError("Enter a valid repo (e.g. vercel/next.js or a GitHub URL)");
       return;
     }
 
@@ -25,24 +25,29 @@ export default function RepoSearch() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-xl">
+    <form onSubmit={handleSubmit} className="w-full">
       <div className="flex gap-2">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="owner/repo 또는 GitHub URL"
-          className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          autoFocus
-        />
+        <div className="relative flex-1">
+          <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#484f58]" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+          </svg>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="owner/repo or GitHub URL"
+            className="w-full pl-10 pr-4 py-3 rounded-lg border border-[#30363d] bg-[#161b22] text-[#e6edf3] placeholder-[#484f58] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] text-sm transition-colors"
+            autoFocus
+          />
+        </div>
         <button
           type="submit"
-          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+          className="px-5 py-3 bg-[#238636] hover:bg-[#2ea043] text-white text-sm font-medium rounded-lg transition-colors whitespace-nowrap"
         >
-          검색
+          Explore
         </button>
       </div>
-      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+      {error && <p className="mt-2 text-xs text-[#f85149]">{error}</p>}
     </form>
   );
 }

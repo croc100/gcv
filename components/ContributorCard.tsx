@@ -7,43 +7,45 @@ interface ContributorCardProps {
   firstContributionDate?: string;
 }
 
-export default function ContributorCard({
-  contributor,
-  rank,
-  firstContributionDate,
-}: ContributorCardProps) {
+const RANK_COLORS: Record<number, string> = {
+  1: "text-yellow-400",
+  2: "text-slate-300",
+  3: "text-amber-600",
+};
+
+export default function ContributorCard({ contributor, rank, firstContributionDate }: ContributorCardProps) {
   return (
     <a
       href={contributor.html_url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-md transition-all bg-white dark:bg-gray-800"
+      className="group flex items-center gap-3 p-3 rounded-lg border border-[#21262d] bg-[#161b22] hover:border-[#388bfd] hover:bg-[#1c2128] transition-all"
     >
-      <span className="w-7 text-sm font-medium text-gray-400 text-right shrink-0">
-        #{rank}
+      <span className={`w-6 text-xs font-bold text-right shrink-0 ${RANK_COLORS[rank] ?? "text-[#484f58]"}`}>
+        {rank <= 3 ? ["🥇","🥈","🥉"][rank - 1] : `#${rank}`}
       </span>
       <Image
         src={contributor.avatar_url}
         alt={contributor.login}
-        width={40}
-        height={40}
-        className="rounded-full"
+        width={32}
+        height={32}
+        className="rounded-full ring-1 ring-[#30363d] group-hover:ring-[#388bfd] transition-all"
       />
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
+        <p className="text-sm font-medium text-[#e6edf3] truncate leading-tight">
           {contributor.login}
         </p>
         {firstContributionDate && (
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            첫 기여: {firstContributionDate}
+          <p className="text-[10px] text-[#484f58] mt-0.5">
+            Since {firstContributionDate}
           </p>
         )}
       </div>
       <div className="text-right shrink-0">
-        <p className="font-semibold text-gray-900 dark:text-gray-100">
+        <p className="text-sm font-semibold text-[#e6edf3] tabular-nums">
           {contributor.contributions.toLocaleString()}
         </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">커밋</p>
+        <p className="text-[10px] text-[#484f58]">commits</p>
       </div>
     </a>
   );

@@ -6,10 +6,10 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import ContributorCard from "@/components/ContributorCard";
 import PeriodFilter, { Period } from "@/components/PeriodFilter";
+import { Contributor } from "@/lib/github";
 
 const ContributorChart = dynamic(() => import("@/components/ContributorChart"), { ssr: false });
 const GrowthChart = dynamic(() => import("@/components/GrowthChart"), { ssr: false });
-import { Contributor } from "@/lib/github";
 
 type StatsEntry = {
   author: { login: string } | null;
@@ -28,7 +28,6 @@ function filterByPeriod(stats: StatsEntry[], period: Period): Map<string, number
     "1Y": now - 365 * 86400,
     MAX: 0,
   };
-
   const commitMap = new Map<string, number>();
   for (const entry of stats) {
     if (!entry.author) continue;
@@ -49,31 +48,34 @@ function buildGrowthData(stats: StatsEntry[], period: Period): GrowthPoint[] {
     "1Y": now - 365 * 86400,
     MAX: 0,
   };
-
   const weekSet = new Set<number>();
   for (const entry of stats) {
     for (const w of entry.weeks) {
       if (w.w >= cutoff[period] && w.c > 0) weekSet.add(w.w);
     }
   }
-
   const weeks = Array.from(weekSet).sort((a, b) => a - b);
   const seenAuthors = new Set<string>();
-  const points: GrowthPoint[] = [];
-
-  for (const week of weeks) {
+  return weeks.map((week) => {
     for (const entry of stats) {
       if (!entry.author) continue;
       const w = entry.weeks.find((x) => x.w === week);
       if (w && w.c > 0) seenAuthors.add(entry.author.login);
     }
-    points.push({
-      date: new Date(week * 1000).toLocaleDateString("ko-KR", { month: "short", day: "numeric" }),
+    return {
+      date: new Date(week * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
       total: seenAuthors.size,
-    });
-  }
+    };
+  });
+}
 
-  return points;
+function StatCard({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="flex flex-col gap-0.5 px-5 py-3 rounded-lg border border-[#21262d] bg-[#161b22]">
+      <span className="text-xs text-[#7d8590]">{label}</span>
+      <span className="text-xl font-semibold text-[#e6edf3] tabular-nums">{value}</span>
+    </div>
+  );
 }
 
 export default function RepoPage() {
@@ -86,12 +88,14 @@ export default function RepoPage() {
   const [period, setPeriod] = useState<Period>("MAX");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [token, setToken] = useState<string>("");
+  const [token, setToken] = useState("");
   const [showTokenInput, setShowTokenInput] = useState(false);
+  const [tokenDraft, setTokenDraft] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("github_token");
-    if (saved) setToken(saved);
+    const saved = localStorage.getItem("github_token") ?? "";
+    setToken(saved);
+    setTokenDraft(saved);
   }, []);
 
   const fetchData = useCallback(async () => {
@@ -108,16 +112,11 @@ export default function RepoPage() {
 
       if (!cRes.ok) {
         const e = await cRes.json();
-        throw new Error(e.error || "기여자 데이터 로드 실패");
+        throw new Error(e.error ?? "Failed to load contributors");
       }
 
-      const cData: Contributor[] = await cRes.json();
-      setContributors(cData);
-
-      if (sRes.ok) {
-        const sData: StatsEntry[] = await sRes.json();
-        setStats(sData);
-      }
+      setContributors(await cRes.json());
+      if (sRes.ok) setStats(await sRes.json());
     } catch (e: unknown) {
       setError((e as Error).message);
     } finally {
@@ -125,25 +124,23 @@ export default function RepoPage() {
     }
   }, [owner, repo, token]);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
-  function saveToken(t: string) {
-    setToken(t);
-    localStorage.setItem("github_token", t);
+  function saveToken() {
+    setToken(tokenDraft);
+    localStorage.setItem("github_token", tokenDraft);
     setShowTokenInput(false);
   }
 
   const filteredCommits = stats.length > 0 ? filterByPeriod(stats, period) : null;
-  const displayContributors =
-    filteredCommits
-      ? contributors
-          .map((c) => ({ ...c, contributions: filteredCommits.get(c.login) ?? 0 }))
-          .filter((c) => c.contributions > 0)
-          .sort((a, b) => b.contributions - a.contributions)
-      : contributors;
+  const displayContributors = filteredCommits
+    ? contributors
+        .map((c) => ({ ...c, contributions: filteredCommits.get(c.login) ?? 0 }))
+        .filter((c) => c.contributions > 0)
+        .sort((a, b) => b.contributions - a.contributions)
+    : contributors;
 
+  const totalCommits = displayContributors.reduce((s, c) => s + c.contributions, 0);
   const growthData = stats.length > 0 ? buildGrowthData(stats, period) : [];
 
   const firstDates = new Map<string, string>();
@@ -153,99 +150,120 @@ export default function RepoPage() {
     if (firstWeek) {
       firstDates.set(
         entry.author.login,
-        new Date(firstWeek.w * 1000).toLocaleDateString("ko-KR", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-        })
+        new Date(firstWeek.w * 1000).toLocaleDateString("en-US", { year: "numeric", month: "short" })
       );
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 px-4 py-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen px-4 py-6" style={{ background: "#0d1117" }}>
+      <div className="max-w-6xl mx-auto">
+
+        {/* Header */}
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <div>
-            <Link href="/" className="text-sm text-blue-500 hover:underline">
-              ← 홈으로
-            </Link>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">
-              {owner}/{repo}
-            </h1>
-          </div>
           <div className="flex items-center gap-3">
+            <Link href="/" className="text-[#7d8590] hover:text-[#e6edf3] transition-colors">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+            </Link>
+            <div className="flex items-center gap-2">
+              <svg className="text-[#7d8590]" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 1 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8Z" />
+              </svg>
+              <h1 className="text-sm font-semibold text-[#e6edf3]">
+                <span className="text-[#7d8590]">{owner}</span>
+                <span className="text-[#7d8590] mx-1">/</span>
+                <span>{repo}</span>
+              </h1>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
             <PeriodFilter value={period} onChange={setPeriod} />
             <button
               onClick={() => setShowTokenInput((v) => !v)}
-              className="text-sm px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400"
+              title={token ? "Token configured" : "Set GitHub token"}
+              className={`p-2 rounded-lg border transition-colors ${
+                token
+                  ? "border-[#238636] text-[#3fb950]"
+                  : "border-[#30363d] text-[#7d8590] hover:text-[#e6edf3]"
+              }`}
             >
-              {token ? "토큰 변경" : "토큰 설정"}
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 0 1 2 2m4 0a6 6 0 0 1-7.743 5.743L11 17H9v2H7v2H4a1 1 0 0 1-1-1v-2.586a1 1 0 0 1 .293-.707l5.964-5.964A6 6 0 1 1 21 9z" />
+              </svg>
             </button>
           </div>
         </div>
 
+        {/* Token input */}
         {showTokenInput && (
-          <div className="mb-4 p-4 rounded-lg border border-yellow-300 bg-yellow-50 dark:bg-yellow-900/20 dark:border-yellow-700">
-            <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
-              GitHub Personal Access Token (rate limit: 5000/h)
+          <div className="mb-4 p-4 rounded-lg border border-[#30363d] bg-[#161b22]">
+            <p className="text-xs text-[#7d8590] mb-2">
+              GitHub Personal Access Token — raises rate limit to 5,000 req/h. Stored in localStorage only.
             </p>
             <div className="flex gap-2">
               <input
                 type="password"
-                defaultValue={token}
+                value={tokenDraft}
+                onChange={(e) => setTokenDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && saveToken()}
                 placeholder="ghp_..."
-                id="token-input"
-                className="flex-1 px-3 py-2 text-sm rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800"
+                className="flex-1 px-3 py-2 text-sm rounded-md border border-[#30363d] bg-[#0d1117] text-[#e6edf3] placeholder-[#484f58] focus:outline-none focus:border-[#58a6ff]"
               />
               <button
-                onClick={() => {
-                  const el = document.getElementById("token-input") as HTMLInputElement;
-                  saveToken(el.value);
-                }}
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded hover:bg-blue-700"
+                onClick={saveToken}
+                className="px-4 py-2 text-sm bg-[#238636] hover:bg-[#2ea043] text-white rounded-md transition-colors"
               >
-                저장
+                Save
               </button>
             </div>
           </div>
         )}
 
+        {/* Error */}
         {error && (
-          <div className="mb-4 p-4 rounded-lg border border-red-300 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300">
+          <div className="mb-4 p-3 rounded-lg border border-[#da3633] bg-[#da363311] text-[#f85149] text-sm">
             {error}
           </div>
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-32 text-gray-400">
-            불러오는 중...
+          <div className="flex flex-col items-center justify-center gap-3 py-32">
+            <div className="w-6 h-6 border-2 border-[#388bfd] border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-[#7d8590]">Loading contributors…</p>
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                  커밋 수 Top 20
-                </h2>
+            {/* Stats */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+              <StatCard label="Contributors" value={displayContributors.length.toLocaleString()} />
+              <StatCard label="Total commits" value={totalCommits.toLocaleString()} />
+              <StatCard label="Top contributor" value={displayContributors[0]?.login ?? "—"} />
+              <StatCard label="Period" value={period} />
+            </div>
+
+            {/* Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+              <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
+                <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-4">Commits — Top 20</p>
                 <ContributorChart contributors={displayContributors} />
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                  누적 기여자 성장
-                </h2>
+              <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
+                <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-4">Contributor growth</p>
                 <GrowthChart data={growthData} />
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-              <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                기여자 목록{" "}
-                <span className="font-normal text-gray-500">
-                  ({displayContributors.length}명)
+            {/* List */}
+            <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
+              <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-4">
+                All contributors
+                <span className="ml-2 px-1.5 py-0.5 rounded-full bg-[#21262d] text-[#7d8590] text-[10px] font-normal">
+                  {displayContributors.length}
                 </span>
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
                 {displayContributors.map((c, i) => (
                   <ContributorCard
                     key={c.login}

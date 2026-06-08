@@ -11,15 +11,15 @@ interface PeriodFilterProps {
 
 export default function PeriodFilter({ value, onChange }: PeriodFilterProps) {
   return (
-    <div className="flex gap-1 rounded-lg border border-gray-200 dark:border-gray-700 p-1">
+    <div className="flex gap-0.5 rounded-lg border border-[#30363d] bg-[#161b22] p-0.5">
       {PERIODS.map((p) => (
         <button
           key={p}
           onClick={() => onChange(p)}
-          className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
             value === p
-              ? "bg-blue-600 text-white"
-              : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+              ? "bg-[#21262d] text-[#e6edf3] shadow-sm"
+              : "text-[#7d8590] hover:text-[#e6edf3]"
           }`}
         >
           {p}
