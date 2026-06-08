@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         per_page: 100,
         page,
       });
-      if (data.length === 0) break;
+      if (!Array.isArray(data) || data.length === 0) break;
       contributors.push(...data);
       if (data.length < 100) break;
       page++;

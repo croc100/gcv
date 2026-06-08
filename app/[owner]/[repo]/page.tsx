@@ -115,8 +115,13 @@ export default function RepoPage() {
         throw new Error(e.error ?? "Failed to load contributors");
       }
 
-      setContributors(await cRes.json());
-      if (sRes.ok) setStats(await sRes.json());
+      const cData = await cRes.json();
+      setContributors(Array.isArray(cData) ? cData : []);
+
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        if (Array.isArray(sData)) setStats(sData);
+      }
     } catch (e: unknown) {
       setError((e as Error).message);
     } finally {

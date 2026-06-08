@@ -25,8 +25,8 @@ export async function GET(request: NextRequest) {
       await new Promise((r) => setTimeout(r, 2000));
     }
 
-    if (!data) {
-      return NextResponse.json({ error: "Stats not ready, try again" }, { status: 202 });
+    if (!data || !Array.isArray(data)) {
+      return NextResponse.json({ error: "Stats not ready, try again" }, { status: 503 });
     }
 
     return NextResponse.json(data);
