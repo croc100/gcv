@@ -1,8 +1,9 @@
 import RepoSearch from "@/components/RepoSearch";
+import RecentRepos from "@/components/RecentRepos";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: "#0d1117" }}>
+    <main className="min-h-screen flex flex-col items-center justify-center px-4 py-12" style={{ background: "#0d1117" }}>
       <div className="w-full max-w-2xl flex flex-col items-center gap-10">
 
         <div className="text-center">
@@ -20,6 +21,8 @@ export default function Home() {
         </div>
 
         <RepoSearch />
+
+        <RecentRepos />
 
         <div className="flex flex-col items-center gap-2">
           <p className="text-xs text-[#484f58]">Try these</p>

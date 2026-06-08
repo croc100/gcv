@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import ContributorCard from "@/components/ContributorCard";
 import PeriodFilter, { Period } from "@/components/PeriodFilter";
 import type { Contributor } from "@/lib/types";
+import { recordVisit, isFavorite, toggleFavorite } from "@/lib/history";
 
 const ContributorChart = dynamic(() => import("@/components/ContributorChart"), { ssr: false });
 const GrowthChart = dynamic(() => import("@/components/GrowthChart"), { ssr: false });
@@ -92,12 +93,15 @@ export default function RepoPage() {
   const [token, setToken] = useState("");
   const [showTokenInput, setShowTokenInput] = useState(false);
   const [tokenDraft, setTokenDraft] = useState("");
+  const [starred, setStarred] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("github_token") ?? "";
     setToken(saved);
     setTokenDraft(saved);
-  }, []);
+    setStarred(isFavorite(owner, repo));
+    recordVisit(owner, repo);
+  }, [owner, repo]);
 
   const fetchStats = useCallback(async (headers: Record<string, string>, attempt = 0) => {
     const res = await fetch(`/api/github/stats?owner=${owner}&repo=${repo}`, { headers });
@@ -200,6 +204,22 @@ export default function RepoPage() {
           </div>
           <div className="flex items-center gap-2">
             <PeriodFilter value={period} onChange={setPeriod} />
+            <button
+              onClick={() => {
+                const next = toggleFavorite(owner, repo);
+                setStarred(next);
+              }}
+              title={starred ? "Remove from favorites" : "Add to favorites"}
+              className={`p-2 rounded-lg border transition-colors ${
+                starred
+                  ? "border-[#9e6a03] text-yellow-400 bg-[#9e6a0311]"
+                  : "border-[#30363d] text-[#7d8590] hover:text-yellow-400 hover:border-[#9e6a03]"
+              }`}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill={starred ? "currentColor" : "none"} stroke="currentColor" strokeWidth={1.5}>
+                <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
+              </svg>
+            </button>
             <button
               onClick={() => setShowTokenInput((v) => !v)}
               title={token ? "Token configured" : "Set GitHub token"}
