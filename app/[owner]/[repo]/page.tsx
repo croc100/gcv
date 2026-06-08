@@ -3,10 +3,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import ContributorCard from "@/components/ContributorCard";
-import ContributorChart from "@/components/ContributorChart";
-import GrowthChart from "@/components/GrowthChart";
 import PeriodFilter, { Period } from "@/components/PeriodFilter";
+
+const ContributorChart = dynamic(() => import("@/components/ContributorChart"), { ssr: false });
+const GrowthChart = dynamic(() => import("@/components/GrowthChart"), { ssr: false });
 import { Contributor } from "@/lib/github";
 
 type StatsEntry = {
