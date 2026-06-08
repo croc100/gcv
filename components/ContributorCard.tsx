@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { Contributor } from "@/lib/types";
 
@@ -5,6 +7,10 @@ interface ContributorCardProps {
   contributor: Contributor;
   rank: number;
   firstContributionDate?: string;
+  selectable?: boolean;
+  selected?: boolean;
+  onSelect?: () => void;
+  onClickUser?: () => void;
 }
 
 const RANK_COLORS: Record<number, string> = {
@@ -13,14 +19,46 @@ const RANK_COLORS: Record<number, string> = {
   3: "text-amber-600",
 };
 
-export default function ContributorCard({ contributor, rank, firstContributionDate }: ContributorCardProps) {
+export default function ContributorCard({
+  contributor, rank, firstContributionDate,
+  selectable, selected, onSelect, onClickUser,
+}: ContributorCardProps) {
+  function handleClick(e: React.MouseEvent) {
+    if (selectable) {
+      e.preventDefault();
+      onSelect?.();
+      return;
+    }
+    if (onClickUser) {
+      e.preventDefault();
+      onClickUser();
+    }
+  }
+
   return (
     <a
       href={contributor.html_url}
-      target="_blank"
+      target={selectable || onClickUser ? undefined : "_blank"}
       rel="noopener noreferrer"
-      className="group flex items-center gap-3 p-3 rounded-lg border border-[#21262d] bg-[#161b22] hover:border-[#388bfd] hover:bg-[#1c2128] transition-all"
+      onClick={handleClick}
+      className={`group flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer
+        ${selectable
+          ? selected
+            ? "border-[#388bfd] bg-[#1c2128] ring-1 ring-[#388bfd]"
+            : "border-[#21262d] bg-[#161b22] hover:border-[#388bfd40]"
+          : "border-[#21262d] bg-[#161b22] hover:border-[#388bfd] hover:bg-[#1c2128]"
+        }`}
     >
+      {selectable && (
+        <div className={`w-4 h-4 rounded shrink-0 border-2 flex items-center justify-center transition-colors
+          ${selected ? "border-[#388bfd] bg-[#388bfd]" : "border-[#30363d]"}`}>
+          {selected && (
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M2 5l2 2 4-4" stroke="#fff" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </div>
+      )}
       <span className={`w-6 text-xs font-bold text-right shrink-0 ${RANK_COLORS[rank] ?? "text-[#484f58]"}`}>
         {rank <= 3 ? ["🥇","🥈","🥉"][rank - 1] : `#${rank}`}
       </span>
@@ -36,9 +74,7 @@ export default function ContributorCard({ contributor, rank, firstContributionDa
           {contributor.login}
         </p>
         {firstContributionDate && (
-          <p className="text-[10px] text-[#484f58] mt-0.5">
-            Since {firstContributionDate}
-          </p>
+          <p className="text-[10px] text-[#484f58] mt-0.5">Since {firstContributionDate}</p>
         )}
       </div>
       <div className="text-right shrink-0">
