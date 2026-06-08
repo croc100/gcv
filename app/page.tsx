@@ -4,9 +4,12 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center gap-8 px-4 bg-gray-50 dark:bg-gray-950">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-          GitHub Contributor Viewer
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-1">
+          GCV
         </h1>
+        <p className="text-sm font-medium text-gray-400 dark:text-gray-500 mb-2 tracking-wide">
+          GitHub Contributor Viewer
+        </p>
         <p className="text-gray-500 dark:text-gray-400">
           GitHub 리포지토리의 기여자 현황을 한눈에 확인하세요
         </p>

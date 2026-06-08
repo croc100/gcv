@@ -1,7 +1,8 @@
 {
-  "name": "github-contributor-viewer",
+  "name": "gcv",
   "version": "0.1.0",
-  "private": true,
+  "description": "GitHub Contributor Viewer — visualize repository contributors, commit trends, and growth over time",
+  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

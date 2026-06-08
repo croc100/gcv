@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GCV — GitHub Contributor Viewer
 
-## Getting Started
+Visualize GitHub repository contributors, commit trends, and contributor growth over time.
 
-First, run the development server:
+## Features
+
+- **Contributor list** — ranked by commit count with avatars and first contribution date
+- **Period filter** — 1M / 3M / 6M / 1Y / MAX
+- **Commit bar chart** — top 20 contributors at a glance
+- **Growth chart** — cumulative unique contributors over time
+- **GitHub token support** — set your token in-browser (localStorage) to raise the rate limit to 5,000 req/h
+
+## Stack
+
+- [Next.js 14](https://nextjs.org) (App Router)
+- TypeScript
+- Tailwind CSS
+- [Octokit](https://github.com/octokit/rest.js)
+- [Recharts](https://recharts.org)
+
+## Getting started
 
 ```bash
+git clone https://github.com/<your-username>/gcv.git
+cd gcv
+npm install
+cp .env.local.example .env.local   # optionally add a server-side token
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) and search for any public repo, e.g. `vercel/next.js`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Description |
+|---|---|
+| `GITHUB_TOKEN` | Server-side default token. Without it, GitHub's unauthenticated limit (60 req/h) applies. |
 
-## Learn More
+Users can also set their own token via the **token button** in the UI — it's stored only in their browser's `localStorage` and sent as a request header to the API proxy.
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment (Vercel)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Push this repo to GitHub.
+2. Import the repo on [vercel.com](https://vercel.com).
+3. Add `GITHUB_TOKEN` in **Settings → Environment Variables**.
+4. Deploy — every push to `main` auto-deploys.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Roadmap (v2)
 
-## Deploy on Vercel
+- [ ] Compare multiple repos side-by-side
+- [ ] First-time contributor highlight
+- [ ] Cumulative contributor growth graph (standalone page)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+PRs and issues are welcome. Please open an issue first for significant changes.
+
+## License
+
+[MIT](LICENSE)
