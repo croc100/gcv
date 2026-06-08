@@ -14,8 +14,14 @@ export async function GET(request: NextRequest) {
     .filter(Boolean)
     .slice(0, 9)
     .map((item) => {
-      const [login, commits] = item.split(":");
-      return { login, commits: Number(commits) || 0 };
+      const [login, commits, avatar] = item.split(":");
+      return {
+        login,
+        commits: Number(commits) || 0,
+        avatar: avatar
+          ? decodeURIComponent(avatar)
+          : `https://avatars.githubusercontent.com/${login}`,
+      };
     });
 
   return new ImageResponse(
@@ -45,7 +51,7 @@ export async function GET(request: NextRequest) {
 
         {/* Contributors grid */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 16, flex: 1 }}>
-          {contributors.map(({ login, commits }) => (
+          {contributors.map(({ login, commits, avatar }) => (
             <div
               key={login}
               style={{
@@ -61,7 +67,7 @@ export async function GET(request: NextRequest) {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`https://github.com/${login}.png?size=48`}
+                src={avatar}
                 width={48}
                 height={48}
                 style={{ borderRadius: "50%" }}
