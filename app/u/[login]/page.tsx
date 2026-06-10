@@ -199,7 +199,7 @@ export default function UserProfilePage() {
             <div className="flex flex-col gap-4">
 
               {/* Stats row */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div className="rounded-xl border border-[#21262d] bg-[#161b22] px-4 py-3">
                   <p className="text-xs text-[#7d8590]">Commits (90d)</p>
                   <p className="text-2xl font-bold text-[#e6edf3] tabular-nums">{totalCommits.toLocaleString()}</p>

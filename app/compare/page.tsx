@@ -258,26 +258,20 @@ export default function ComparePage() {
                         </span>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-1">
+                    {/* Desktop: side-by-side grid. Mobile: A section then B section */}
+                    <div className="hidden sm:grid grid-cols-2 gap-x-6 gap-y-1">
                       {Array.from({ length: Math.max(topA.length, topB.length) }).map((_, i) => {
                         const ca = topA[i];
                         const cb = topB[i];
                         return (
                           <div key={i} className="contents">
-                            {/* Left */}
                             {ca ? (
-                              <a
-                                href={ca.html_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`group flex items-center gap-2 px-2.5 py-2 rounded-lg border transition-colors hover:bg-[#1c2128] ${sharedLogins.has(ca.login) ? "border-[#3fb95030] bg-[#3fb95008]" : "border-transparent"}`}
-                              >
+                              <a href={ca.html_url} target="_blank" rel="noopener noreferrer"
+                                className={`group flex items-center gap-2 px-2.5 py-2 rounded-lg border transition-colors hover:bg-[#1c2128] ${sharedLogins.has(ca.login) ? "border-[#3fb95030] bg-[#3fb95008]" : "border-transparent"}`}>
                                 <span className="text-[10px] text-[#484f58] w-4 text-right shrink-0">{i + 1}</span>
                                 <Image src={ca.avatar_url} alt={ca.login} width={22} height={22} className="rounded-full ring-1 ring-[#30363d] shrink-0" />
                                 <span className="text-xs text-[#e6edf3] truncate flex-1">{ca.login}</span>
-                                {sharedLogins.has(ca.login) && (
-                                  <span className="text-[9px] px-1 rounded" style={{ color: COLOR_B, background: COLOR_B + "20" }}>both</span>
-                                )}
+                                {sharedLogins.has(ca.login) && <span className="text-[9px] px-1 rounded" style={{ color: COLOR_B, background: COLOR_B + "20" }}>both</span>}
                                 <div className="flex items-center gap-1.5 shrink-0">
                                   <div className="w-16 h-1 rounded-full bg-[#21262d] overflow-hidden">
                                     <div className="h-full rounded-full" style={{ width: `${(ca.contributions / maxContrib) * 100}%`, background: COLOR_A }} />
@@ -286,20 +280,13 @@ export default function ComparePage() {
                                 </div>
                               </a>
                             ) : <div />}
-                            {/* Right */}
                             {cb ? (
-                              <a
-                                href={cb.html_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`group flex items-center gap-2 px-2.5 py-2 rounded-lg border transition-colors hover:bg-[#1c2128] ${sharedLogins.has(cb.login) ? "border-[#3fb95030] bg-[#3fb95008]" : "border-transparent"}`}
-                              >
+                              <a href={cb.html_url} target="_blank" rel="noopener noreferrer"
+                                className={`group flex items-center gap-2 px-2.5 py-2 rounded-lg border transition-colors hover:bg-[#1c2128] ${sharedLogins.has(cb.login) ? "border-[#3fb95030] bg-[#3fb95008]" : "border-transparent"}`}>
                                 <span className="text-[10px] text-[#484f58] w-4 text-right shrink-0">{i + 1}</span>
                                 <Image src={cb.avatar_url} alt={cb.login} width={22} height={22} className="rounded-full ring-1 ring-[#30363d] shrink-0" />
                                 <span className="text-xs text-[#e6edf3] truncate flex-1">{cb.login}</span>
-                                {sharedLogins.has(cb.login) && (
-                                  <span className="text-[9px] px-1 rounded" style={{ color: COLOR_B, background: COLOR_B + "20" }}>both</span>
-                                )}
+                                {sharedLogins.has(cb.login) && <span className="text-[9px] px-1 rounded" style={{ color: COLOR_B, background: COLOR_B + "20" }}>both</span>}
                                 <div className="flex items-center gap-1.5 shrink-0">
                                   <div className="w-16 h-1 rounded-full bg-[#21262d] overflow-hidden">
                                     <div className="h-full rounded-full" style={{ width: `${(cb.contributions / maxContrib) * 100}%`, background: COLOR_B }} />
@@ -311,6 +298,34 @@ export default function ComparePage() {
                           </div>
                         );
                       })}
+                    </div>
+                    {/* Mobile: A then B stacked */}
+                    <div className="flex flex-col gap-4 sm:hidden">
+                      {[
+                        { list: topA, color: COLOR_A, label: repoA },
+                        { list: topB, color: COLOR_B, label: repoB },
+                      ].map(({ list, color, label }) => (
+                        <div key={label}>
+                          <p className="text-[10px] font-mono text-[#484f58] mb-1.5 truncate" style={{ color }}>{label}</p>
+                          <div className="flex flex-col gap-0.5">
+                            {list.map((c, i) => (
+                              <a key={c.login} href={c.html_url} target="_blank" rel="noopener noreferrer"
+                                className={`flex items-center gap-2 px-2.5 py-2 rounded-lg border transition-colors hover:bg-[#1c2128] ${sharedLogins.has(c.login) ? "border-[#3fb95030] bg-[#3fb95008]" : "border-transparent"}`}>
+                                <span className="text-[10px] text-[#484f58] w-4 text-right shrink-0">{i + 1}</span>
+                                <Image src={c.avatar_url} alt={c.login} width={22} height={22} className="rounded-full ring-1 ring-[#30363d] shrink-0" />
+                                <span className="text-xs text-[#e6edf3] truncate flex-1">{c.login}</span>
+                                {sharedLogins.has(c.login) && <span className="text-[9px] px-1 rounded" style={{ color: COLOR_B, background: COLOR_B + "20" }}>both</span>}
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <div className="w-14 h-1 rounded-full bg-[#21262d] overflow-hidden">
+                                    <div className="h-full rounded-full" style={{ width: `${(c.contributions / maxContrib) * 100}%`, background: color }} />
+                                  </div>
+                                  <span className="text-[10px] tabular-nums w-9 text-right" style={{ color }}>{c.contributions.toLocaleString()}</span>
+                                </div>
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

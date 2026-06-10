@@ -191,9 +191,11 @@ export default function WrappedPage() {
                   <p className="text-[10px] text-[#484f58] uppercase tracking-widest">Most active repo</p>
                   <p className="text-sm font-semibold text-[#e6edf3] mt-0.5">{topRepo}</p>
                 </div>
-                <Link href={`/${topRepo}`} className="text-[10px] text-[#388bfd] hover:underline">
-                  View →
-                </Link>
+                {topRepo !== "—" && (
+                  <Link href={`/${topRepo}`} className="text-[10px] text-[#388bfd] hover:underline">
+                    View →
+                  </Link>
+                )}
               </div>
 
               {languages.length > 0 && langTotal > 0 && (

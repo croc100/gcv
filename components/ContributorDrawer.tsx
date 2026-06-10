@@ -91,7 +91,7 @@ export default function ContributorDrawer({ login, owner, repo, commits, onClose
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 z-50 flex flex-col border-l border-[#21262d] bg-[#161b22] shadow-2xl transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}
+        className={`fixed top-0 right-0 h-full w-full sm:w-80 z-50 flex flex-col border-l border-[#21262d] bg-[#161b22] shadow-2xl transition-transform duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#21262d]">
           <span className="text-sm font-medium text-[#e6edf3]">Contributor</span>
