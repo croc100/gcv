@@ -137,14 +137,22 @@ export default function ContributorDrawer({ login, owner, repo, commits, onClose
                   <span><strong className="text-[#e6edf3]">{user.followers.toLocaleString()}</strong> followers</span>
                   <span><strong className="text-[#e6edf3]">{user.following.toLocaleString()}</strong> following</span>
                 </div>
-                <a
-                  href={user.html_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-1.5 text-xs text-center border border-[#30363d] rounded-lg text-[#7d8590] hover:border-[#388bfd] hover:text-[#e6edf3] transition-colors"
-                >
-                  View on GitHub
-                </a>
+                <div className="flex gap-2 w-full">
+                  <a
+                    href={`/u/${user.login}`}
+                    className="flex-1 py-1.5 text-xs text-center border border-[#388bfd] rounded-lg text-[#388bfd] hover:bg-[#388bfd15] transition-colors"
+                  >
+                    GCV Profile
+                  </a>
+                  <a
+                    href={user.html_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 py-1.5 text-xs text-center border border-[#30363d] rounded-lg text-[#7d8590] hover:border-[#388bfd] hover:text-[#e6edf3] transition-colors"
+                  >
+                    GitHub
+                  </a>
+                </div>
               </div>
 
               {/* Repo contribution stats */}
