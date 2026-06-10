@@ -9,7 +9,11 @@ export async function GET(request: NextRequest) {
   let returnTo = "/";
   try {
     const decoded = JSON.parse(Buffer.from(state ?? "", "base64url").toString());
-    returnTo = decoded.returnTo ?? "/";
+    const candidate = decoded.returnTo ?? "/";
+    // Only allow relative paths to prevent open redirect
+    if (typeof candidate === "string" && candidate.startsWith("/")) {
+      returnTo = candidate;
+    }
   } catch { /* ignore */ }
 
   if (!code) return NextResponse.redirect(new URL("/", origin));
