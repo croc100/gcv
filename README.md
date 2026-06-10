@@ -26,7 +26,11 @@
 - **Contributor search** — filter by username
 
 ### Exploration
-- **Contributor drawer** — click any contributor to see their GitHub profile and top repos
+- **Contributor drawer** — click any contributor to see their GitHub profile, top repos, and PR/issue counts in the repo
+- **PR & Issue stats** — per-contributor PR and issue counts fetched live from GitHub Search API
+- **Repo health score** — bus factor, contributor diversity (HHI), and 4-week activity trend at a glance
+- **Contribution heatmap** — GitHub-style 52-week commit calendar, filterable by top contributors
+- **CSV export** — download contributor data as a spreadsheet
 - **Repo comparison** — compare two repositories side-by-side (`/compare`)
 - **Favorites & history** — star repos and revisit recent searches (stored locally)
 
@@ -105,12 +109,12 @@ For local development use `http://localhost:3000/api/auth/callback` as the callb
 
 ## Roadmap
 
-- [ ] PR & Issue contribution stats per contributor
-- [ ] CSV / JSON data export
-- [ ] Contribution heatmap (commit calendar)
+- [x] PR & Issue contribution stats per contributor
+- [x] CSV data export
+- [x] Contribution heatmap (commit calendar)
+- [x] Repo health score — bus factor, diversity, activity trend
+- [x] First-time contributor highlight
 - [ ] Org dashboard — top contributors across all repos in an org
-- [ ] Repo health score — contributor diversity, bus factor, activity trend
-- [ ] First-time contributor highlight
 
 ---
 

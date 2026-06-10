@@ -6,6 +6,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import ContributorCard from "@/components/ContributorCard";
 import ContributorDrawer from "@/components/ContributorDrawer";
+import RepoHealthScore from "@/components/RepoHealthScore";
 import BadgeModal from "@/components/BadgeModal";
 import OGShareModal from "@/components/OGShareModal";
 import PeriodFilter, { Period } from "@/components/PeriodFilter";
@@ -14,6 +15,7 @@ import { recordVisit, isFavorite, toggleFavorite } from "@/lib/history";
 
 const ContributorChart = dynamic(() => import("@/components/ContributorChart"), { ssr: false });
 const GrowthChart = dynamic(() => import("@/components/GrowthChart"), { ssr: false });
+const CommitHeatmap = dynamic(() => import("@/components/CommitHeatmap"), { ssr: false });
 
 type StatsEntry = {
   author: { login: string } | null;
@@ -208,14 +210,39 @@ export default function RepoPage() {
 
   const growthData = stats.length > 0 ? buildGrowthData(stats, period) : [];
   const firstDates = new Map<string, string>();
+  const firstTimers = new Set<string>();
+  const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000;
   for (const entry of stats) {
     if (!entry.author) continue;
     const fw = entry.weeks.find((w) => w.c > 0);
-    if (fw) firstDates.set(entry.author.login, new Date(fw.w * 1000).toLocaleDateString("en-US", { year: "numeric", month: "short" }));
+    if (fw) {
+      firstDates.set(entry.author.login, new Date(fw.w * 1000).toLocaleDateString("en-US", { year: "numeric", month: "short" }));
+      if (fw.w * 1000 >= ninetyDaysAgo) firstTimers.add(entry.author.login);
+    }
   }
 
   const botCount = byPeriod.filter((c) => isBot(c.login)).length;
   const selectedContributors = displayContributors.filter((c) => selectedLogins.has(c.login));
+
+  function exportCSV() {
+    const rows = [
+      ["rank", "login", "commits", "first_contribution"],
+      ...displayContributors.map((c, i) => [
+        String(i + 1),
+        c.login,
+        String(c.contributions),
+        firstDates.get(c.login) ?? "",
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((v) => `"${v.replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${owner}-${repo}-contributors.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="min-h-screen px-4 py-6" style={{ background: "#0d1117" }}>
@@ -281,6 +308,13 @@ export default function RepoPage() {
               </svg>
             </IconButton>
 
+            {/* CSV Export */}
+            <IconButton onClick={exportCSV} title="Export CSV" active={false}>
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+              </svg>
+            </IconButton>
+
             {/* Badge */}
             <IconButton onClick={() => setShowBadge(true)} title="Get badge" active={false}>
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -338,6 +372,10 @@ export default function RepoPage() {
               <StatCard label="Period" value={period} />
             </div>
 
+            {stats.length > 0 && !statsLoading && (
+              <RepoHealthScore contributors={byPeriod.filter((c) => !isBot(c.login))} stats={stats} />
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
                 <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-4">Commits — Top 20</p>
@@ -355,6 +393,13 @@ export default function RepoPage() {
                 )}
               </div>
             </div>
+
+            {/* Heatmap */}
+            {stats.length > 0 && !statsLoading && (
+              <div className="mb-4">
+                <CommitHeatmap stats={stats} />
+              </div>
+            )}
 
             {/* Contributor list */}
             <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
@@ -405,6 +450,7 @@ export default function RepoPage() {
                     contributor={c}
                     rank={i + 1}
                     firstContributionDate={firstDates.get(c.login)}
+                    isNew={firstTimers.has(c.login)}
                     selectable={shareMode}
                     selected={selectedLogins.has(c.login)}
                     onSelect={() => {
@@ -440,7 +486,13 @@ export default function RepoPage() {
       )}
 
       {/* Modals & Drawer */}
-      <ContributorDrawer login={drawerLogin} onClose={() => setDrawerLogin(null)} />
+      <ContributorDrawer
+        login={drawerLogin}
+        owner={owner}
+        repo={repo}
+        commits={contributors.find((c) => c.login === drawerLogin)?.contributions}
+        onClose={() => setDrawerLogin(null)}
+      />
       {showBadge && <BadgeModal owner={owner} repo={repo} onClose={() => setShowBadge(false)} />}
       {showOG && (
         <OGShareModal

@@ -7,6 +7,7 @@ interface ContributorCardProps {
   contributor: Contributor;
   rank: number;
   firstContributionDate?: string;
+  isNew?: boolean;
   selectable?: boolean;
   selected?: boolean;
   onSelect?: () => void;
@@ -20,7 +21,7 @@ const RANK_COLORS: Record<number, string> = {
 };
 
 export default function ContributorCard({
-  contributor, rank, firstContributionDate,
+  contributor, rank, firstContributionDate, isNew,
   selectable, selected, onSelect, onClickUser,
 }: ContributorCardProps) {
   function handleClick(e: React.MouseEvent) {
@@ -70,9 +71,16 @@ export default function ContributorCard({
         className="rounded-full ring-1 ring-[#30363d] group-hover:ring-[#388bfd] transition-all"
       />
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-[#e6edf3] truncate leading-tight">
-          {contributor.login}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-medium text-[#e6edf3] truncate leading-tight">
+            {contributor.login}
+          </p>
+          {isNew && (
+            <span className="shrink-0 text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#1a4731] text-[#3fb950] border border-[#238636] leading-none">
+              NEW
+            </span>
+          )}
+        </div>
         {firstContributionDate && (
           <p className="text-[10px] text-[#484f58] mt-0.5">Since {firstContributionDate}</p>
         )}
