@@ -139,7 +139,10 @@ export default function ComparePage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </Link>
-          <h1 className="text-sm font-semibold text-[#e6edf3]">Compare repositories</h1>
+          <div className="flex items-center gap-1 rounded-lg border border-[#30363d] bg-[#161b22] p-0.5">
+            <span className="px-3 py-1.5 text-xs rounded-md bg-[#21262d] text-[#e6edf3]">Repos</span>
+            <Link href="/compare/u" className="px-3 py-1.5 text-xs text-[#7d8590] hover:text-[#e6edf3] transition-colors">Users</Link>
+          </div>
         </div>
 
         {/* Repo inputs */}
