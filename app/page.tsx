@@ -17,7 +17,7 @@ export default function Home() {
             GCV
           </h1>
           <p className="text-[#7d8590] text-base">
-            Explore contributors of any GitHub repository
+            Discover repos, explore communities, and analyze contributor health
           </p>
         </div>
 

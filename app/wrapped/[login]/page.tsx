@@ -117,7 +117,7 @@ export default function WrappedPage() {
             {/* Title */}
             <div className="flex items-center justify-between mb-6">
               <div>
-                <p className="text-[10px] text-[#484f58] uppercase tracking-widest">GitHub Wrapped</p>
+                <p className="text-[10px] text-[#484f58] uppercase tracking-widest">GCV Wrapped</p>
                 <p className="text-2xl font-black text-[#e6edf3]">{year}</p>
               </div>
               <div className="text-[10px] text-[#484f58] font-mono">gcv-five.vercel.app</div>
@@ -231,7 +231,7 @@ export default function WrappedPage() {
               {copied ? "✓ Copied" : "Copy link"}
             </button>
             <a
-              href={`https://twitter.com/intent/tweet?text=My GitHub Wrapped ${year} — check out my open source contributions!&url=${encodeURIComponent(`https://gcv-five.vercel.app/wrapped/${login}`)}`}
+              href={`https://twitter.com/intent/tweet?text=My GCV Wrapped ${year} — check out my open source contributions!&url=${encodeURIComponent(`https://gcv-five.vercel.app/wrapped/${login}`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="px-4 py-2 text-xs rounded-lg border border-[#30363d] text-[#7d8590] hover:border-[#1d9bf0] hover:text-[#1d9bf0] transition-colors"

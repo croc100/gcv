@@ -7,13 +7,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { owner, repo } = params;
   const title = `${owner}/${repo} contributors — GCV`;
-  const description = `Explore contributors, commit trends, and growth history for ${owner}/${repo} on GitHub Contributor Viewer.`;
+  const description = `Explore contributors, commit trends, and growth history for ${owner}/${repo} on GCV — GitHub Community Vitals.`;
   const url = `https://gcv-five.vercel.app/${owner}/${repo}`;
 
   return {
     title,
     description,
-    openGraph: { title, description, url, siteName: "GCV" },
+    openGraph: { title, description, url, siteName: "GCV — GitHub Community Vitals" },
     twitter: { card: "summary", title, description },
     alternates: { canonical: url },
   };
