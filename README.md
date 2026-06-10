@@ -114,7 +114,7 @@ For local development use `http://localhost:3000/api/auth/callback` as the callb
 - [x] Contribution heatmap (commit calendar)
 - [x] Repo health score — bus factor, diversity, activity trend
 - [x] First-time contributor highlight
-- [ ] Org dashboard — top contributors across all repos in an org
+- [x] Org dashboard — top contributors across all repos in an org (`/org/[name]`)
 
 ---
 
