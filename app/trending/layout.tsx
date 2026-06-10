@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Trending repos — GCV",
   description: "Most starred GitHub repositories pushed this week, filterable by language.",
-  openGraph: { title: "Trending repos — GCV", description: "Most starred GitHub repos pushed this week.", siteName: "GCV" },
+  openGraph: { title: "Trending repos — GCV", description: "Most starred GitHub repos pushed this week.", siteName: "GCV — GitHub Community Vitals" },
   alternates: { canonical: "https://gcv-five.vercel.app/trending" },
 };
 

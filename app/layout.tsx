@@ -16,8 +16,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "GCV — GitHub Contributor Viewer",
-  description: "Visualize GitHub repository contributors, commit trends, and contributor growth over time.",
+  title: "GCV — GitHub Community Vitals",
+  description: "Discover trending repos, explore open source communities, and analyze contributor health across GitHub.",
 };
 
 export default function RootLayout({
