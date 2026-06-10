@@ -23,22 +23,33 @@ type GitHubRepo = {
   language: string | null;
 };
 
+type ActivityStats = {
+  prs: number;
+  issues: number;
+};
+
 interface ContributorDrawerProps {
   login: string | null;
+  owner?: string;
+  repo?: string;
+  commits?: number;
   onClose: () => void;
 }
 
-export default function ContributorDrawer({ login, onClose }: ContributorDrawerProps) {
+export default function ContributorDrawer({ login, owner, repo, commits, onClose }: ContributorDrawerProps) {
   const [user, setUser] = useState<GitHubUser | null>(null);
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [activity, setActivity] = useState<ActivityStats | null>(null);
+  const [activityLoading, setActivityLoading] = useState(false);
 
   useEffect(() => {
     if (!login) return;
     setUser(null);
     setRepos([]);
     setFetchError(null);
+    setActivity(null);
     setLoading(true);
 
     const token = localStorage.getItem("github_token") ?? "";
@@ -54,7 +65,19 @@ export default function ContributorDrawer({ login, onClose }: ContributorDrawerP
       })
       .catch((e) => setFetchError(e.message ?? "Failed to load profile"))
       .finally(() => setLoading(false));
-  }, [login]);
+
+    // Fetch PR/Issue stats if owner/repo provided
+    if (owner && repo) {
+      setActivityLoading(true);
+      fetch(`/api/github/activity?owner=${owner}&repo=${repo}&login=${login}`, { headers })
+        .then((r) => r.json())
+        .then((data) => {
+          if (!data.error) setActivity(data);
+        })
+        .catch(() => {/* silently fail */})
+        .finally(() => setActivityLoading(false));
+    }
+  }, [login, owner, repo]);
 
   const open = !!login;
 
@@ -123,6 +146,54 @@ export default function ContributorDrawer({ login, onClose }: ContributorDrawerP
                   View on GitHub
                 </a>
               </div>
+
+              {/* Repo contribution stats */}
+              {(commits !== undefined || owner) && (
+                <div>
+                  <p className="text-[10px] font-medium text-[#484f58] uppercase tracking-widest mb-2">
+                    Repo contributions
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {commits !== undefined && (
+                      <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-[#0d1117] border border-[#21262d]">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="#57ab5a">
+                          <path d="M1.643 3.143L.427 1.927A.25.25 0 0 0 0 2.104V5.75c0 .138.112.25.25.25h3.646a.25.25 0 0 0 .177-.427L2.715 4.215a6.5 6.5 0 1 1-1.18 4.458.75.75 0 1 0-1.493.154 8.001 8.001 0 1 0 1.6-5.684ZM7.75 4a.75.75 0 0 1 .75.75v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5A.75.75 0 0 1 7.75 4Z" />
+                        </svg>
+                        <span className="text-sm font-semibold text-[#e6edf3]">{commits.toLocaleString()}</span>
+                        <span className="text-[10px] text-[#484f58]">commits</span>
+                      </div>
+                    )}
+                    {activityLoading ? (
+                      <>
+                        <div className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-[#0d1117] border border-[#21262d]">
+                          <div className="w-3 h-3 border border-[#388bfd] border-t-transparent rounded-full animate-spin" />
+                        </div>
+                        <div className="flex flex-col items-center justify-center gap-1 p-3 rounded-lg bg-[#0d1117] border border-[#21262d]">
+                          <div className="w-3 h-3 border border-[#388bfd] border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      </>
+                    ) : activity ? (
+                      <>
+                        <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-[#0d1117] border border-[#21262d]">
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="#388bfd">
+                            <path d="M7.177 3.073L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM.75 5h1.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 .75 5ZM.75 8h1.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 .75 8ZM.75 11h1.5a.75.75 0 0 1 0 1.5H.75A.75.75 0 0 1 .75 11Z" />
+                          </svg>
+                          <span className="text-sm font-semibold text-[#e6edf3]">{activity.prs.toLocaleString()}</span>
+                          <span className="text-[10px] text-[#484f58]">PRs</span>
+                        </div>
+                        <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-[#0d1117] border border-[#21262d]">
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="#da3633">
+                            <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z" />
+                            <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Z" />
+                          </svg>
+                          <span className="text-sm font-semibold text-[#e6edf3]">{activity.issues.toLocaleString()}</span>
+                          <span className="text-[10px] text-[#484f58]">issues</span>
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+                </div>
+              )}
 
               {/* Repos */}
               {repos.length > 0 && (
