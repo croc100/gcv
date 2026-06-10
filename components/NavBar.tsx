@@ -75,6 +75,16 @@ export default function NavBar() {
             >
               Orgs
             </Link>
+            <Link
+              href="/promote"
+              className={`hidden sm:block px-2.5 py-1 text-xs rounded-md transition-colors ${
+                pathname === "/promote"
+                  ? "text-[#d29922] bg-[#9e6a0320]"
+                  : "text-[#9e6a03] hover:text-[#d29922]"
+              }`}
+            >
+              Promote
+            </Link>
           </nav>
         </div>
 
