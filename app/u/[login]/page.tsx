@@ -106,14 +106,22 @@ export default function UserProfilePage() {
                     <p className="text-sm text-[#7d8590]">@{user.login}</p>
                   </div>
                   {user.bio && <p className="text-xs text-[#7d8590] leading-relaxed">{user.bio}</p>}
-                  <a
-                    href={user.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-1.5 text-xs text-center border border-[#30363d] rounded-lg text-[#7d8590] hover:border-[#388bfd] hover:text-[#e6edf3] transition-colors"
-                  >
-                    View on GitHub
-                  </a>
+                  <div className="flex gap-2 w-full">
+                    <Link
+                      href={`/wrapped/${user.login}`}
+                      className="flex-1 py-1.5 text-xs text-center border border-[#9e6a03] rounded-lg text-[#d29922] hover:bg-[#9e6a0320] transition-colors"
+                    >
+                      🎁 Wrapped
+                    </Link>
+                    <a
+                      href={user.html_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 py-1.5 text-xs text-center border border-[#30363d] rounded-lg text-[#7d8590] hover:border-[#388bfd] hover:text-[#e6edf3] transition-colors"
+                    >
+                      GitHub
+                    </a>
+                  </div>
                 </div>
 
                 <div className="mt-4 pt-4 border-t border-[#21262d] flex flex-col gap-2">
