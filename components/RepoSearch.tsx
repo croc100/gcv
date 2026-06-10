@@ -15,8 +15,14 @@ export default function RepoSearch() {
     const trimmed = input.trim().replace(/^https?:\/\/github\.com\//, "");
     const parts = trimmed.split("/").filter(Boolean);
 
+    if (parts.length === 1) {
+      // Org dashboard
+      router.push(`/org/${parts[0]}`);
+      return;
+    }
+
     if (parts.length < 2) {
-      setError("Enter a valid repo (e.g. vercel/next.js or a GitHub URL)");
+      setError("Enter a repo (owner/repo) or an org name");
       return;
     }
 
@@ -35,7 +41,7 @@ export default function RepoSearch() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="owner/repo or GitHub URL"
+            placeholder="owner/repo, org name, or GitHub URL"
             className="w-full pl-10 pr-4 py-3 rounded-lg border border-[#30363d] bg-[#161b22] text-[#e6edf3] placeholder-[#484f58] focus:outline-none focus:border-[#58a6ff] focus:ring-1 focus:ring-[#58a6ff] text-sm transition-colors"
             autoFocus
           />
