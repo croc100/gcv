@@ -205,8 +205,9 @@ export default function CommitHeatmap({ stats }: CommitHeatmapProps) {
                   onMouseEnter={(e) => {
                     if (isFuture) return;
                     const rect = (e.target as SVGRectElement).getBoundingClientRect();
+                    const x = Math.min(rect.left + rect.width / 2, window.innerWidth - 120);
                     setTooltip({
-                      x: rect.left + rect.width / 2,
+                      x: Math.max(x, 60),
                       y: rect.top - 8,
                       date: dateStr,
                       count: weekCommits,

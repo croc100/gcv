@@ -34,10 +34,10 @@ export default function NavBar() {
             </svg>
             <span className="text-sm font-semibold">GCV</span>
           </Link>
-          <nav className="flex items-center gap-1">
+          <nav className="flex items-center gap-0.5">
             <Link
               href="/trending"
-              className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+              className={`hidden xs:block px-2.5 py-1 text-xs rounded-md transition-colors ${
                 pathname === "/trending"
                   ? "text-[#e6edf3] bg-[#21262d]"
                   : "text-[#7d8590] hover:text-[#e6edf3]"
@@ -47,7 +47,7 @@ export default function NavBar() {
             </Link>
             <Link
               href="/explore"
-              className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+              className={`hidden sm:block px-2.5 py-1 text-xs rounded-md transition-colors ${
                 pathname === "/explore"
                   ? "text-[#e6edf3] bg-[#21262d]"
                   : "text-[#7d8590] hover:text-[#e6edf3]"
@@ -67,7 +67,7 @@ export default function NavBar() {
             </Link>
             <Link
               href="/org/vercel"
-              className={`px-2.5 py-1 text-xs rounded-md transition-colors ${
+              className={`hidden xs:block px-2.5 py-1 text-xs rounded-md transition-colors ${
                 pathname.startsWith("/org/")
                   ? "text-[#e6edf3] bg-[#21262d]"
                   : "text-[#7d8590] hover:text-[#e6edf3]"
