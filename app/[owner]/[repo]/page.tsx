@@ -6,6 +6,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import ContributorCard from "@/components/ContributorCard";
 import ContributorDrawer from "@/components/ContributorDrawer";
+import RepoHealthScore from "@/components/RepoHealthScore";
 import BadgeModal from "@/components/BadgeModal";
 import OGShareModal from "@/components/OGShareModal";
 import PeriodFilter, { Period } from "@/components/PeriodFilter";
@@ -370,6 +371,10 @@ export default function RepoPage() {
               <StatCard label="Top contributor" value={displayContributors[0]?.login ?? "—"} />
               <StatCard label="Period" value={period} />
             </div>
+
+            {stats.length > 0 && !statsLoading && (
+              <RepoHealthScore contributors={byPeriod.filter((c) => !isBot(c.login))} stats={stats} />
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
               <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
