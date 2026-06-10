@@ -79,6 +79,7 @@ export default function WrappedPage() {
   const topLang = languages[0]?.lang ?? "—";
   const maxWeek = Math.max(...weeklyActivity.map((w) => w.commits), 1);
   const year = new Date().getFullYear();
+  const langTotal = languages.reduce((s, l) => s + l.count, 0);
 
   return (
     <div className="min-h-screen px-4 py-8" style={{ background: "#0d1117" }}>
@@ -195,30 +196,24 @@ export default function WrappedPage() {
                 </Link>
               </div>
 
-              {languages.length > 0 && (
+              {languages.length > 0 && langTotal > 0 && (
                 <div className="p-3 rounded-xl border border-[#21262d] bg-[#0d1117]">
                   <p className="text-[10px] text-[#484f58] uppercase tracking-widest mb-2">Languages</p>
                   <div className="flex h-2 rounded-full overflow-hidden gap-px mb-2">
-                    {languages.map(({ lang, count }) => {
-                      const total = languages.reduce((s, l) => s + l.count, 0);
-                      return (
-                        <div
-                          key={lang}
-                          style={{ width: `${(count / total) * 100}%`, background: LANG_COLORS[lang] ?? "#7d8590" }}
-                        />
-                      );
-                    })}
+                    {languages.map(({ lang, count }) => (
+                      <div
+                        key={lang}
+                        style={{ width: `${(count / langTotal) * 100}%`, background: LANG_COLORS[lang] ?? "#7d8590" }}
+                      />
+                    ))}
                   </div>
                   <div className="flex flex-wrap gap-x-3 gap-y-1">
-                    {languages.map(({ lang, count }) => {
-                      const total = languages.reduce((s, l) => s + l.count, 0);
-                      return (
-                        <span key={lang} className="flex items-center gap-1 text-[10px] text-[#7d8590]">
-                          <span className="w-2 h-2 rounded-full" style={{ background: LANG_COLORS[lang] ?? "#7d8590" }} />
-                          {lang} {Math.round((count / total) * 100)}%
-                        </span>
-                      );
-                    })}
+                    {languages.map(({ lang, count }) => (
+                      <span key={lang} className="flex items-center gap-1 text-[10px] text-[#7d8590]">
+                        <span className="w-2 h-2 rounded-full" style={{ background: LANG_COLORS[lang] ?? "#7d8590" }} />
+                        {lang} {Math.round((count / langTotal) * 100)}%
+                      </span>
+                    ))}
                   </div>
                 </div>
               )}
