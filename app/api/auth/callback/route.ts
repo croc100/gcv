@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
   try {
     const decoded = JSON.parse(Buffer.from(state ?? "", "base64url").toString());
     const candidate = decoded.returnTo ?? "/";
-    // Only allow relative paths to prevent open redirect
-    if (typeof candidate === "string" && candidate.startsWith("/")) {
+    // Only allow simple relative paths — reject protocol-relative URLs (//evil.com)
+    if (typeof candidate === "string" && candidate.startsWith("/") && !candidate.startsWith("//")) {
       returnTo = candidate;
     }
   } catch { /* ignore */ }

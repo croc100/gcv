@@ -56,7 +56,8 @@ export async function GET(request: NextRequest) {
       // Round to start of week (Sunday)
       d.setUTCDate(d.getUTCDate() - d.getUTCDay());
       const key = d.toISOString().slice(0, 10);
-      const commits = (event.payload as { commits?: unknown[] }).commits?.length ?? 1;
+      // Use payload.size for actual commit count — commits array is capped at 20 by GitHub
+      const commits = (event.payload as { size?: number; commits?: unknown[] }).size ?? 1;
       weeklyMap.set(key, (weeklyMap.get(key) ?? 0) + commits);
     }
 
