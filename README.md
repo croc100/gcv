@@ -1,4 +1,4 @@
-# GCV — GitHub Contributor Viewer
+# GCV — GitHub Community Vitals
 
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js-14-black?logo=next.js" alt="Next.js 14" />
@@ -9,39 +9,45 @@
 </p>
 
 <p align="center">
-  Visualize GitHub repository contributors, commit trends, and growth over time.<br/>
-  Search any public repo — no sign-in required.
+  Discover trending repos, explore open source communities, and analyze contributor health across GitHub.<br/>
+  No sign-in required to get started.
 </p>
 
 ---
 
 ## Features
 
-### Core
-- **Contributor list** — ranked by commit count with avatars and first contribution date
-- **Period filter** — 1M / 3M / 6M / 1Y / MAX
-- **Commit bar chart** — top 20 contributors at a glance
-- **Growth chart** — cumulative unique contributors over time
-- **Bot filter** — hide bots and automation accounts
-- **Contributor search** — filter by username
+### Repo analytics (`/[owner]/[repo]`)
+- Contributor list ranked by commit count with avatars and first contribution date
+- **New contributor badge** — highlights contributors who made their first commit in the last 90 days
+- **Commit heatmap** — GitHub-style 52-week calendar, filterable by top contributor
+- **Repo health score** — composite 0–100 score: bus factor (40%), contributor diversity/HHI (40%), 4-week activity trend (20%)
+- Period filter — 1M / 3M / 6M / 1Y / MAX
+- Commit bar chart, growth chart, bot filter, CSV export
+- **Contributor drawer** — click any contributor for their GitHub profile, top repos, and per-repo PR/issue counts
 
-### Exploration
-- **Contributor drawer** — click any contributor to see their GitHub profile, top repos, and PR/issue counts in the repo
-- **PR & Issue stats** — per-contributor PR and issue counts fetched live from GitHub Search API
-- **Repo health score** — bus factor, contributor diversity (HHI), and 4-week activity trend at a glance
-- **Contribution heatmap** — GitHub-style 52-week commit calendar, filterable by top contributors
-- **CSV export** — download contributor data as a spreadsheet
-- **Repo comparison** — compare two repositories side-by-side (`/compare`)
-- **Favorites & history** — star repos and revisit recent searches (stored locally)
+### Discovery
+- **Trending** (`/trending`) — most starred repos pushed this week, filterable by language
+- **Explore** (`/explore`) — active repos with good first issues for new contributors
+- **Compare** (`/compare`) — side-by-side stats for two repos
+- **Org dashboard** (`/org/[org]`) — contributor leaderboard across all repos in an organization
 
-### Sharing
-- **URL persistence** — period filter syncs to URL for shareable links
-- **OG share image** — generate a custom card of selected contributors to share on social media
-- **README badge** — embed a live contributor count badge in your repo
+### Profiles
+- **Contributor profile** (`/u/[login]`) — recent activity, active repos, language breakdown, commit sparkline
+- **GCV Wrapped** (`/wrapped/[login]`) — shareable year-in-review card
+
+### Sharing & embedding
+- **Embed widget** (`/widget/[owner]/[repo]`) — iframe-embeddable contributor grid with 1h cache
+- **README badge** — live contributor count badge (`/api/badge/[owner]/[repo]`)
+- **OG share image** — custom social card for any repo
+- URL persistence — all filters sync to URL
+
+### Promote your repo
+- **Sponsored listings** (`/promote`) — feature your repo on Trending, Explore, and the homepage
+- Powered by Stripe + Vercel KV
 
 ### Auth
 - **GitHub OAuth** — sign in for 5,000 req/h (vs 60/h unauthenticated)
-- **Personal token fallback** — enter your token directly if OAuth is not configured
 
 ---
 
@@ -55,41 +61,48 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) and search for any public repo, e.g. `vercel/next.js`.
+Open [http://localhost:3000](http://localhost:3000) and search any public repo, e.g. `vercel/next.js`.
 
 ---
 
 ## Environment variables
 
-Copy `.env.local.example` to `.env.local` and fill in the values.
-
 | Variable | Required | Description |
-|----------|----------|-------------|
-| `GITHUB_TOKEN` | No | Server-side default token. Raises the limit for all users even without sign-in. |
-| `GITHUB_CLIENT_ID` | No* | GitHub OAuth App Client ID. Enables "Sign in with GitHub". |
+|---|---|---|
+| `GITHUB_TOKEN` | No | Server-side default token. Raises rate limit for all users. |
+| `GITHUB_CLIENT_ID` | No* | GitHub OAuth App Client ID. |
 | `GITHUB_CLIENT_SECRET` | No* | GitHub OAuth App Client Secret. |
-| `JWT_SECRET` | No* | Secret for signing auth cookies. Generate: `openssl rand -hex 32` |
+| `JWT_SECRET` | No* | Cookie signing secret — `openssl rand -hex 32` |
+| `STRIPE_SECRET_KEY` | No† | Stripe secret key for promoted repos. |
+| `STRIPE_WEBHOOK_SECRET` | No† | Stripe webhook signing secret. |
+| `NEXT_PUBLIC_BASE_URL` | No† | Full deployment URL, e.g. `https://gcv-five.vercel.app` |
+| `KV_REST_API_URL` | No† | Auto-set when Vercel KV store is linked. |
+| `KV_REST_API_TOKEN` | No† | Auto-set when Vercel KV store is linked. |
 
-\*All three required together to enable OAuth login.
+\* All three required together to enable GitHub OAuth.  
+† All required together to enable promoted repos.
 
-### Setting up GitHub OAuth (optional but recommended)
+### GitHub OAuth setup
 
-1. Go to **GitHub → Settings → Developer settings → OAuth Apps → New OAuth App**
-2. Set **Homepage URL** to your deployment URL
-3. Set **Authorization callback URL** to `https://your-domain.com/api/auth/callback`
-4. Copy the **Client ID** and generate a **Client Secret**
-5. Add all three variables to your environment
+1. GitHub → Settings → Developer settings → OAuth Apps → New OAuth App
+2. Callback URL: `https://your-domain.com/api/auth/callback`
+3. Add `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `JWT_SECRET` to env
 
-For local development use `http://localhost:3000/api/auth/callback` as the callback URL.
+For local dev: `http://localhost:3000/api/auth/callback`
+
+### Promoted repos setup
+
+1. Create a [Vercel KV](https://vercel.com/docs/storage/vercel-kv) store and link it to your project
+2. Register a Stripe webhook at `https://your-domain.com/api/promote/webhook` → event: `checkout.session.completed`
+3. Add `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_BASE_URL` to env
 
 ---
 
-## Deployment (Vercel)
+## Deployment
 
-1. Push this repo to GitHub
-2. Import on [vercel.com](https://vercel.com)
-3. Add environment variables in **Settings → Environment Variables**
-4. Deploy — every push to `main` auto-deploys
+1. Push to GitHub and import on [vercel.com](https://vercel.com)
+2. Add environment variables in Settings → Environment Variables
+3. Every push to `main` auto-deploys
 
 ---
 
@@ -97,30 +110,22 @@ For local development use `http://localhost:3000/api/auth/callback` as the callb
 
 | | |
 |---|---|
-| Framework | [Next.js 14](https://nextjs.org) App Router |
+| Framework | Next.js 14 App Router |
 | Language | TypeScript |
 | Styling | Tailwind CSS |
-| GitHub API | [Octokit](https://github.com/octokit/rest.js) |
-| Charts | [Recharts](https://recharts.org) |
-| Auth | GitHub OAuth + JWT ([jose](https://github.com/panva/jose)) |
+| GitHub API | Octokit |
+| Charts | Recharts |
+| Auth | GitHub OAuth + JWT (jose) |
+| Payments | Stripe |
+| Storage | Vercel KV (Redis) |
+| Analytics | Vercel Analytics |
 | Deployment | Vercel |
-
----
-
-## Roadmap
-
-- [x] PR & Issue contribution stats per contributor
-- [x] CSV data export
-- [x] Contribution heatmap (commit calendar)
-- [x] Repo health score — bus factor, diversity, activity trend
-- [x] First-time contributor highlight
-- [x] Org dashboard — top contributors across all repos in an org (`/org/[name]`)
 
 ---
 
 ## Contributing
 
-PRs and issues are welcome. Please open an issue first for significant changes.
+PRs and issues welcome. Open an issue first for significant changes.
 
 ## License
 
