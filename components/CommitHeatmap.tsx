@@ -71,9 +71,11 @@ export default function CommitHeatmap({ stats }: CommitHeatmapProps) {
         days.push({ date: d, ts: Math.floor(d.getTime() / 1000) });
       }
       // Week timestamp key: GitHub uses Sunday 00:00 UTC
+      // Use UTC date parts to avoid DST/timezone shifting the key off midnight
       const sunday = days[0];
+      const d = sunday.date;
       const wts = Math.floor(
-        Date.UTC(sunday.date.getFullYear(), sunday.date.getMonth(), sunday.date.getDate()) / 1000
+        Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 1000
       );
       columns.push({ weekTs: wts, days });
     }

@@ -29,7 +29,9 @@ function diversityScore(contribs: ContributorSlim[]): number {
     return s + share * share;
   }, 0);
   // hhi ranges from 1/n (perfectly equal) to 1 (monopoly)
-  const normalized = (1 - hhi) / (1 - 1 / Math.max(contribs.length, 1));
+  // When n=1 the denominator is 0 — only one contributor, diversity is 0
+  if (contribs.length === 1) return 0;
+  const normalized = (1 - hhi) / (1 - 1 / contribs.length);
   return Math.round(Math.min(normalized, 1) * 100);
 }
 
