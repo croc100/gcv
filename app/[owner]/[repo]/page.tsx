@@ -14,6 +14,7 @@ import { recordVisit, isFavorite, toggleFavorite } from "@/lib/history";
 
 const ContributorChart = dynamic(() => import("@/components/ContributorChart"), { ssr: false });
 const GrowthChart = dynamic(() => import("@/components/GrowthChart"), { ssr: false });
+const CommitHeatmap = dynamic(() => import("@/components/CommitHeatmap"), { ssr: false });
 
 type StatsEntry = {
   author: { login: string } | null;
@@ -387,6 +388,13 @@ export default function RepoPage() {
                 )}
               </div>
             </div>
+
+            {/* Heatmap */}
+            {stats.length > 0 && !statsLoading && (
+              <div className="mb-4">
+                <CommitHeatmap stats={stats} />
+              </div>
+            )}
 
             {/* Contributor list */}
             <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5">
