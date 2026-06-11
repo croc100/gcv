@@ -100,6 +100,7 @@ export default function RepoPage() {
   const [contributors, setContributors] = useState<Contributor[]>([]);
   const [stats, setStats] = useState<StatsEntry[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [statsTimedOut, setStatsTimedOut] = useState(false);
   const [period, setPeriod] = useState<Period>("MAX");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -148,7 +149,7 @@ export default function RepoPage() {
     }
     if (attempt < 5) {
       statsTimerRef.current = setTimeout(() => fetchStats(headers, attempt + 1), 3000);
-    } else setStatsLoading(false);
+    } else { setStatsLoading(false); setStatsTimedOut(true); }
   }, [owner, repo]);
 
   useEffect(() => {
@@ -387,6 +388,23 @@ export default function RepoPage() {
                   <div className="flex flex-col items-center justify-center h-[280px] gap-2">
                     <div className="w-4 h-4 border-2 border-[#388bfd] border-t-transparent rounded-full animate-spin" />
                     <p className="text-xs text-[#484f58]">GitHub is computing stats…</p>
+                  </div>
+                ) : statsTimedOut && stats.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-[280px] gap-3">
+                    <p className="text-xs text-[#484f58]">GitHub is still computing stats for this repo.</p>
+                    <button
+                      onClick={() => {
+                        setStatsLoading(true);
+                        setStatsTimedOut(false);
+                        const token = localStorage.getItem("github_token") ?? "";
+                        const headers: Record<string, string> = {};
+                        if (token) headers["x-github-token"] = token;
+                        fetchStats(headers);
+                      }}
+                      className="px-3 py-1.5 text-xs rounded-md border border-[#30363d] text-[#7d8590] hover:text-[#e6edf3] hover:border-[#388bfd] transition-colors"
+                    >
+                      Retry
+                    </button>
                   </div>
                 ) : (
                   <GrowthChart data={growthData} />
