@@ -85,6 +85,16 @@ export default function NavBar() {
             >
               Promote
             </Link>
+            <Link
+              href="/badge"
+              className={`hidden sm:block px-2.5 py-1 text-xs rounded-md transition-colors ${
+                pathname === "/badge"
+                  ? "text-[#e6edf3] bg-[#21262d]"
+                  : "text-[#7d8590] hover:text-[#e6edf3]"
+              }`}
+            >
+              Badge
+            </Link>
           </nav>
         </div>
 
