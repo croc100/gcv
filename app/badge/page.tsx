@@ -16,10 +16,9 @@ export default function BadgePage() {
 
   const base = typeof window !== "undefined" ? window.location.origin : "https://gcv-five.vercel.app";
   const valid = owner.trim() && repo.trim();
-  const badgeUrl = valid ? `${base}/api/badge/${owner.trim()}/${repo.trim()}` : "";
+  const healthBadgeUrl = valid ? `${base}/api/badge/health/${owner.trim()}/${repo.trim()}` : "";
   const pageUrl = valid ? `${base}/${owner.trim()}/${repo.trim()}` : "";
-  const markdown = `[![Contributors](${badgeUrl})](${pageUrl})`;
-  const html = `<a href="${pageUrl}"><img src="${badgeUrl}" alt="Contributors" /></a>`;
+  const markdown = valid ? `[![GCV Health](${healthBadgeUrl})](${pageUrl})` : "";
 
   function copy(text: string, key: string) {
     navigator.clipboard.writeText(text);
@@ -39,8 +38,8 @@ export default function BadgePage() {
             </svg>
           </Link>
           <div>
-            <h1 className="text-lg font-bold text-[#e6edf3]">Contributor Badge</h1>
-            <p className="text-xs text-[#7d8590]">Add a live contributors count badge to your README</p>
+            <h1 className="text-lg font-bold text-[#e6edf3]">GCV Health Badge</h1>
+            <p className="text-xs text-[#7d8590]">Show your repo&apos;s community health score in your README</p>
           </div>
         </div>
 
@@ -69,7 +68,7 @@ export default function BadgePage() {
           <div className="flex items-center justify-center py-5 rounded-lg bg-[#0d1117] border border-[#21262d] mb-5">
             {valid ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={badgeUrl} alt="badge preview" key={badgeUrl} />
+              <img src={healthBadgeUrl} alt="badge preview" key={healthBadgeUrl} />
             ) : (
               <div className="flex items-center gap-2 text-xs text-[#484f58]">
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -83,18 +82,17 @@ export default function BadgePage() {
 
           {/* Snippets */}
           {[
-            { label: "Markdown", key: "md", value: markdown, disabled: !valid },
-            { label: "HTML", key: "html", value: html, disabled: !valid },
-            { label: "Direct URL", key: "url", value: badgeUrl, disabled: !valid },
-          ].map(({ label, key, value, disabled }) => (
+            { label: "Markdown", key: "md", value: markdown },
+            { label: "Direct URL", key: "url", value: healthBadgeUrl },
+          ].map(({ label, key, value }) => (
             <div key={key} className="mb-3">
               <p className="text-[10px] font-medium text-[#484f58] uppercase tracking-widest mb-1.5">{label}</p>
               <div className="flex items-center gap-2">
-                <code className={`flex-1 text-xs bg-[#0d1117] border border-[#21262d] rounded-md px-3 py-2 truncate ${disabled ? "text-[#30363d]" : "text-[#7d8590]"}`}>
-                  {disabled ? "Enter owner/repo above" : value}
+                <code className={`flex-1 text-xs bg-[#0d1117] border border-[#21262d] rounded-md px-3 py-2 truncate ${!valid ? "text-[#30363d]" : "text-[#7d8590]"}`}>
+                  {!valid ? "Enter owner/repo above" : value}
                 </code>
                 <button
-                  disabled={disabled}
+                  disabled={!valid}
                   onClick={() => copy(value, key)}
                   className="shrink-0 px-3 py-2 text-xs rounded-md border border-[#30363d] text-[#7d8590] hover:text-[#e6edf3] hover:border-[#388bfd] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
@@ -105,86 +103,33 @@ export default function BadgePage() {
           ))}
         </div>
 
-        {/* Health badge */}
+        {/* Score breakdown */}
         <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-6 mb-6">
-          <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
-            <div>
-              <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-1">Health badge</p>
-              <p className="text-xs text-[#484f58]">Shows the community health score of your repo — bus factor, contributor diversity, and activity trend.</p>
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/api/badge/health/vercel/next.js" alt="health badge preview" className="shrink-0" />
-          </div>
-
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full bg-[#3fb950]" />
-            <span className="text-[10px] text-[#7d8590]">70–100 · Healthy</span>
-            <span className="w-2 h-2 rounded-full bg-[#d29922] ml-3" />
-            <span className="text-[10px] text-[#7d8590]">40–69 · Fair</span>
-            <span className="w-2 h-2 rounded-full bg-[#f85149] ml-3" />
-            <span className="text-[10px] text-[#7d8590]">0–39 · At risk</span>
-          </div>
-
-          <div className="mt-4">
-            <p className="text-[10px] font-medium text-[#484f58] uppercase tracking-widest mb-1.5">Markdown</p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 text-[11px] text-[#7d8590] bg-[#0d1117] border border-[#21262d] rounded-md px-3 py-2 truncate">
-                {valid
-                  ? `[![GCV Health](${base}/api/badge/health/${owner.trim()}/${repo.trim()})](${pageUrl})`
-                  : "Enter owner/repo above to generate"}
-              </code>
-              <button
-                disabled={!valid}
-                onClick={() => copy(`[![GCV Health](${base}/api/badge/health/${owner.trim()}/${repo.trim()})](${pageUrl})`, "health-md")}
-                className="shrink-0 px-3 py-2 text-xs rounded-md border border-[#30363d] text-[#7d8590] hover:text-[#e6edf3] hover:border-[#388bfd] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-              >
-                {copied === "health-md" ? "Copied!" : "Copy"}
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-3 p-3 rounded-lg bg-[#0d1117] border border-[#21262d] text-[10px] text-[#484f58] leading-relaxed">
-            Score = bus factor (40%) + contributor diversity (40%) + 4-week activity trend (20%)
-          </div>
-        </div>
-
-        {/* How it works */}
-        <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-6 mb-6">
-          <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-4">How it works</p>
-          <div className="flex flex-col gap-4">
+          <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-4">How the score works</p>
+          <div className="flex flex-col gap-3 mb-4">
             {[
-              {
-                step: "1",
-                title: "Paste in your README",
-                desc: "Copy the Markdown snippet above and paste it into your repository's README.md.",
-                code: `[![Contributors](https://gcv-five.vercel.app/api/badge/owner/repo)](https://gcv-five.vercel.app/owner/repo)`,
-              },
-              {
-                step: "2",
-                title: "Auto-updates every hour",
-                desc: "The badge fetches a fresh contributor count and caches it for 1 hour. No setup, no tokens required.",
-                code: null,
-              },
-              {
-                step: "3",
-                title: "Links to your GCV page",
-                desc: "Clicking the badge takes visitors to your full contributors dashboard on GCV.",
-                code: null,
-              },
-            ].map(({ step, title, desc, code }) => (
-              <div key={step} className="flex gap-4">
-                <div className="w-6 h-6 rounded-full bg-[#21262d] text-[#7d8590] text-xs flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                  {step}
-                </div>
+              { label: "Bus factor", pct: "40%", desc: "Minimum contributors holding 50% of commits. Higher = less risk." },
+              { label: "Contributor diversity", pct: "40%", desc: "How evenly distributed commits are across contributors (HHI index)." },
+              { label: "Activity trend", pct: "20%", desc: "Last 4 weeks vs previous 4 weeks. Growing activity = higher score." },
+            ].map(({ label, pct, desc }) => (
+              <div key={label} className="flex gap-3">
+                <span className="text-xs font-mono text-[#388bfd] w-10 shrink-0 pt-0.5">{pct}</span>
                 <div>
-                  <p className="text-sm font-medium text-[#e6edf3] mb-0.5">{title}</p>
-                  <p className="text-xs text-[#7d8590]">{desc}</p>
-                  {code && (
-                    <code className="mt-2 block text-[11px] text-[#7d8590] bg-[#0d1117] border border-[#21262d] rounded-md px-3 py-2 break-all">
-                      {code}
-                    </code>
-                  )}
+                  <p className="text-xs font-medium text-[#e6edf3]">{label}</p>
+                  <p className="text-[11px] text-[#484f58]">{desc}</p>
                 </div>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-4 pt-4 border-t border-[#21262d]">
+            {[
+              { color: "#3fb950", label: "70–100", status: "Healthy" },
+              { color: "#d29922", label: "40–69", status: "Fair" },
+              { color: "#f85149", label: "0–39", status: "At risk" },
+            ].map(({ color, label, status }) => (
+              <div key={status} className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ background: color }} />
+                <span className="text-[10px] text-[#7d8590]">{label} · {status}</span>
               </div>
             ))}
           </div>
@@ -200,10 +145,7 @@ export default function BadgePage() {
                   {o}/{r}
                 </Link>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={`/api/badge/${o}/${r}`}
-                  alt={`${o}/${r} contributors`}
-                />
+                <img src={`/api/badge/health/${o}/${r}`} alt={`${o}/${r} health`} />
               </div>
             ))}
           </div>
