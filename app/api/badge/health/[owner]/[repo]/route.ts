@@ -43,12 +43,6 @@ function healthColor(score: number): string {
   return "#f85149";
 }
 
-function healthLabel(score: number): string {
-  if (score >= 70) return "healthy";
-  if (score >= 40) return "fair";
-  return "at risk";
-}
-
 function badge(score: number): string {
   const label = "gcv";
   const value = `${score}%`;
