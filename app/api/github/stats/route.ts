@@ -22,14 +22,16 @@ export async function GET(request: NextRequest) {
         data = res.data;
         break;
       }
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 800));
     }
 
     if (!data || !Array.isArray(data)) {
       return NextResponse.json({ error: "Stats not ready, try again" }, { status: 503 });
     }
 
-    return NextResponse.json(data);
+    return NextResponse.json(data, {
+      headers: { "Cache-Control": "public, s-maxage=600, stale-while-revalidate=1200" },
+    });
   } catch (error: unknown) {
     const status = (error as { status?: number }).status ?? 500;
     const message = (error as { message?: string }).message ?? "GitHub API error";

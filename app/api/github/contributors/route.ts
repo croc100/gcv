@@ -29,7 +29,9 @@ export async function GET(request: NextRequest) {
       page++;
     }
 
-    return NextResponse.json(contributors);
+    return NextResponse.json(contributors, {
+      headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" },
+    });
   } catch (error: unknown) {
     const status = (error as { status?: number }).status ?? 500;
     const message = (error as { message?: string }).message ?? "GitHub API error";
