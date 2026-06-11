@@ -105,6 +105,49 @@ export default function BadgePage() {
           ))}
         </div>
 
+        {/* Health badge */}
+        <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-6 mb-6">
+          <div className="flex items-start justify-between gap-4 mb-4 flex-wrap">
+            <div>
+              <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-1">Health badge</p>
+              <p className="text-xs text-[#484f58]">Shows the community health score of your repo — bus factor, contributor diversity, and activity trend.</p>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/api/badge/health/vercel/next.js" alt="health badge preview" className="shrink-0" />
+          </div>
+
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-[#3fb950]" />
+            <span className="text-[10px] text-[#7d8590]">70–100 · Healthy</span>
+            <span className="w-2 h-2 rounded-full bg-[#d29922] ml-3" />
+            <span className="text-[10px] text-[#7d8590]">40–69 · Fair</span>
+            <span className="w-2 h-2 rounded-full bg-[#f85149] ml-3" />
+            <span className="text-[10px] text-[#7d8590]">0–39 · At risk</span>
+          </div>
+
+          <div className="mt-4">
+            <p className="text-[10px] font-medium text-[#484f58] uppercase tracking-widest mb-1.5">Markdown</p>
+            <div className="flex items-center gap-2">
+              <code className="flex-1 text-[11px] text-[#7d8590] bg-[#0d1117] border border-[#21262d] rounded-md px-3 py-2 truncate">
+                {valid
+                  ? `[![GCV Health](${base}/api/badge/health/${owner.trim()}/${repo.trim()})](${pageUrl})`
+                  : "Enter owner/repo above to generate"}
+              </code>
+              <button
+                disabled={!valid}
+                onClick={() => copy(`[![GCV Health](${base}/api/badge/health/${owner.trim()}/${repo.trim()})](${pageUrl})`, "health-md")}
+                className="shrink-0 px-3 py-2 text-xs rounded-md border border-[#30363d] text-[#7d8590] hover:text-[#e6edf3] hover:border-[#388bfd] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                {copied === "health-md" ? "Copied!" : "Copy"}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3 p-3 rounded-lg bg-[#0d1117] border border-[#21262d] text-[10px] text-[#484f58] leading-relaxed">
+            Score = bus factor (40%) + contributor diversity (40%) + 4-week activity trend (20%)
+          </div>
+        </div>
+
         {/* How it works */}
         <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-6 mb-6">
           <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-4">How it works</p>
