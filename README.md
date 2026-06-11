@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/Tailwind-3-06B6D4?logo=tailwindcss" alt="Tailwind CSS" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT" />
   <a href="https://gcv-five.vercel.app"><img src="https://img.shields.io/badge/live-gcv--five.vercel.app-brightgreen" alt="Live" /></a>
-  <a href="https://gcv-five.vercel.app/croc100/gcv"><img src="https://gcv-five.vercel.app/api/badge/croc100/gcv" alt="Contributors" /></a>
+  <a href="https://gcv-five.vercel.app/croc100/gcv"><img src="https://gcv-five.vercel.app/api/badge/health/croc100/gcv" alt="GCV Health" /></a>
 </p>
 
 <p align="center">
