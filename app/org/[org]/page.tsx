@@ -65,6 +65,51 @@ export default function OrgPage() {
 
   const totalCommits = contributors.reduce((s, c) => s + c.commits, 0);
 
+  // Health score calculations
+  function calcBusFactor(contribs: typeof contributors, total: number): number {
+    if (total === 0) return 0;
+    let cumulative = 0;
+    for (let i = 0; i < contribs.length; i++) {
+      cumulative += contribs[i].commits;
+      if (cumulative / total >= 0.5) return i + 1;
+    }
+    return contribs.length;
+  }
+
+  function calcGini(contribs: typeof contributors): number {
+    if (contribs.length === 0) return 0;
+    const vals = [...contribs].sort((a, b) => a.commits - b.commits).map((c) => c.commits);
+    const n = vals.length;
+    const mean = vals.reduce((s, v) => s + v, 0) / n;
+    if (mean === 0) return 0;
+    let sum = 0;
+    for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) sum += Math.abs(vals[i] - vals[j]);
+    return sum / (2 * n * n * mean);
+  }
+
+  const busFactor = calcBusFactor(contributors, totalCommits);
+  const gini = calcGini(contributors);
+  const top1Pct = totalCommits > 0 ? ((contributors[0]?.commits ?? 0) / totalCommits) * 100 : 0;
+  const top10 = contributors.slice(0, 10).reduce((s, c) => s + c.commits, 0);
+  const top10Pct = totalCommits > 0 ? (top10 / totalCommits) * 100 : 0;
+  const avgReposPerContrib = contributors.length > 0
+    ? contributors.reduce((s, c) => s + c.repos, 0) / contributors.length
+    : 0;
+
+  // Score 0-100
+  const healthScore = Math.round(
+    Math.min(busFactor / 5, 1) * 35 +        // bus factor (max 5+ = full 35pts)
+    (1 - gini) * 35 +                          // distribution equality (0=equal)
+    Math.min(contributors.length / 50, 1) * 30 // contributor count (50+ = full 30pts)
+  );
+
+  function healthLabel(score: number): { label: string; color: string } {
+    if (score >= 75) return { label: "Healthy", color: "#3fb950" };
+    if (score >= 50) return { label: "Moderate", color: "#d29922" };
+    return { label: "At Risk", color: "#f85149" };
+  }
+  const health = healthLabel(healthScore);
+
   return (
     <div className="min-h-screen px-4 py-6" style={{ background: "#0d1117" }}>
       <div className="max-w-6xl mx-auto">
@@ -125,6 +170,75 @@ export default function OrgPage() {
               <div className="flex flex-col gap-0.5 px-5 py-3 rounded-lg border border-[#21262d] bg-[#161b22]">
                 <span className="text-xs text-[#7d8590]">Total commits</span>
                 <span className="text-xl font-semibold text-[#e6edf3]">{totalCommits.toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Health Score */}
+            <div className="rounded-xl border border-[#21262d] bg-[#161b22] p-5 mb-4">
+              <div className="flex items-start justify-between gap-4 mb-5 flex-wrap">
+                <div>
+                  <p className="text-xs font-medium text-[#7d8590] uppercase tracking-wide mb-1">Community Health Score</p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-black tabular-nums" style={{ color: health.color }}>{healthScore}</span>
+                    <span className="text-sm text-[#484f58]">/ 100</span>
+                    <span className="text-sm font-semibold" style={{ color: health.color }}>{health.label}</span>
+                  </div>
+                </div>
+                {/* Score ring */}
+                <div className="relative w-14 h-14 shrink-0">
+                  <svg viewBox="0 0 56 56" className="w-full h-full -rotate-90">
+                    <circle cx="28" cy="28" r="22" fill="none" stroke="#21262d" strokeWidth="5" />
+                    <circle
+                      cx="28" cy="28" r="22" fill="none"
+                      stroke={health.color} strokeWidth="5"
+                      strokeDasharray={`${(healthScore / 100) * 138.2} 138.2`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-bold" style={{ color: health.color }}>
+                    {healthScore}
+                  </span>
+                </div>
+              </div>
+
+              {/* Score breakdown */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  {
+                    label: "Bus Factor",
+                    value: busFactor,
+                    desc: `${busFactor} person${busFactor !== 1 ? "s" : ""} hold 50% of commits`,
+                    color: busFactor >= 3 ? "#3fb950" : busFactor === 2 ? "#d29922" : "#f85149",
+                    format: (v: number) => String(v),
+                  },
+                  {
+                    label: "Top Contributor",
+                    value: top1Pct,
+                    desc: `${top1Pct.toFixed(1)}% of all commits`,
+                    color: top1Pct < 30 ? "#3fb950" : top1Pct < 50 ? "#d29922" : "#f85149",
+                    format: (v: number) => `${v.toFixed(0)}%`,
+                  },
+                  {
+                    label: "Top 10 Share",
+                    value: top10Pct,
+                    desc: `Top 10 own ${top10Pct.toFixed(0)}% of commits`,
+                    color: top10Pct < 60 ? "#3fb950" : top10Pct < 80 ? "#d29922" : "#f85149",
+                    format: (v: number) => `${v.toFixed(0)}%`,
+                  },
+                  {
+                    label: "Avg Repos / Dev",
+                    value: avgReposPerContrib,
+                    desc: `Avg contributor touches ${avgReposPerContrib.toFixed(1)} repos`,
+                    color: avgReposPerContrib >= 2 ? "#3fb950" : "#d29922",
+                    format: (v: number) => v.toFixed(1),
+                  },
+                ].map(({ label, value, desc, color, format }) => (
+                  <div key={label} className="p-3 rounded-lg border border-[#21262d] bg-[#0d1117]">
+                    <p className="text-[10px] text-[#484f58] uppercase tracking-widest mb-1">{label}</p>
+                    <p className="text-xl font-bold tabular-nums mb-0.5" style={{ color }}>{format(value)}</p>
+                    <p className="text-[10px] text-[#484f58] leading-snug">{desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
