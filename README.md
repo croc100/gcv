@@ -38,9 +38,21 @@
 
 ### Sharing & embedding
 - **Embed widget** (`/widget/[owner]/[repo]`) — iframe-embeddable contributor grid with 1h cache
-- **README badge** — live contributor count badge (`/api/badge/[owner]/[repo]`)
+- **README badge** — live contributor count badge, auto-updates hourly ([badge generator →](https://gcv-five.vercel.app/badge))
 - **OG share image** — custom social card for any repo
 - URL persistence — all filters sync to URL
+
+### README badge
+
+Add a live contributors count badge to any repository's README:
+
+```markdown
+[![Contributors](https://gcv-five.vercel.app/api/badge/owner/repo)](https://gcv-five.vercel.app/owner/repo)
+```
+
+Replace `owner/repo` with your repository. The badge auto-updates every hour and links back to your GCV dashboard.
+
+Use the [badge generator](https://gcv-five.vercel.app/badge) for a live preview and one-click copy.
 
 ### Promote your repo
 - **Sponsored listings** (`/promote`) — feature your repo on Trending, Explore, and the homepage
