@@ -46,7 +46,7 @@ export default function SponsoredBanner() {
               }}
               onMouseEnter={(e) => {
                 (e.currentTarget as HTMLElement).style.borderColor = "#d29922aa";
-                (e.currentTarget as HTMLElement).style.background = "#13100200";
+                (e.currentTarget as HTMLElement).style.background = "#131002";
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.borderColor = "#9e6a0340";

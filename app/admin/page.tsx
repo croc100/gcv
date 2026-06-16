@@ -52,11 +52,6 @@ export default function AdminPage() {
     setLoading(false);
   }
 
-  async function fetchPromotions() {
-    const res = await fetch("/api/admin/promotions");
-    if (res.ok) setPromotions(await res.json());
-  }
-
   async function handleAdd() {
     if (!form.full_name.trim()) return;
     setAdding(true);
