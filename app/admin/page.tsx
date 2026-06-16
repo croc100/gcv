@@ -159,7 +159,7 @@ export default function AdminPage() {
               <div>
                 <label className="text-[10px] text-[#484f58] uppercase tracking-widest block mb-1">Contact email</label>
                 <input
-                  type="email"
+                  type="text"
                   value={form.contact}
                   onChange={(e) => setForm((f) => ({ ...f, contact: e.target.value }))}
                   placeholder="contact@example.com"
