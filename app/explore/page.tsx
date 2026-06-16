@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import SponsoredRepos from "@/components/SponsoredRepos";
 
 const LANGS = ["", "TypeScript", "JavaScript", "Python", "Go", "Rust", "Java", "Ruby", "Swift"];
 
@@ -92,7 +91,6 @@ export default function ExplorePage() {
           ))}
         </div>
 
-        <SponsoredRepos />
 
         {error && (
           <div className="p-3 rounded-lg border border-[#da3633] bg-[#da363311] text-[#f85149] text-sm mb-4">{error}</div>

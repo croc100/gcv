@@ -1,6 +1,5 @@
 import RepoSearch from "@/components/RepoSearch";
 import RecentRepos from "@/components/RecentRepos";
-import SponsoredRepos from "@/components/SponsoredRepos";
 
 export default function Home() {
   return (
@@ -24,8 +23,6 @@ export default function Home() {
         <RepoSearch />
 
         <RecentRepos />
-
-        <SponsoredRepos />
 
         <div className="flex flex-col items-center gap-2">
           <p className="text-xs text-[#484f58]">Try a repo</p>
