@@ -50,7 +50,12 @@ export async function POST(request: NextRequest) {
     ends_at: now + days * 86400,
     active: true,
   };
-  await kv.lpush(KEY, repo);
+  try {
+    await kv.lpush(KEY, repo);
+  } catch (e: unknown) {
+    console.error("KV error:", e);
+    return NextResponse.json({ error: "KV not configured — check VERCEL_KV env vars" }, { status: 500 });
+  }
   return NextResponse.json(repo, { status: 201 });
 }
 
