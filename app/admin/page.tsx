@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { PromotedRepo } from "@/lib/promoted";
+import type { PromotedRepo, PromoteRequest } from "@/lib/promoted";
 
 type FormState = {
   full_name: string;
@@ -20,7 +20,9 @@ function fmt(ts: number) {
 export default function AdminPage() {
   const router = useRouter();
   const [authed, setAuthed] = useState<boolean | null>(null);
+  const [tab, setTab] = useState<"promotions" | "requests">("promotions");
   const [promotions, setPromotions] = useState<PromotedRepo[]>([]);
+  const [requests, setRequests] = useState<PromoteRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [adding, setAdding] = useState(false);
@@ -36,14 +38,23 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!authed) return;
-    fetchPromotions();
+    fetchAll();
   }, [authed]);
 
-  async function fetchPromotions() {
+  async function fetchAll() {
     setLoading(true);
+    const [p, r] = await Promise.all([
+      fetch("/api/admin/promotions").then((res) => res.ok ? res.json() : []),
+      fetch("/api/admin/requests").then((res) => res.ok ? res.json() : []),
+    ]);
+    setPromotions(p);
+    setRequests(r);
+    setLoading(false);
+  }
+
+  async function fetchPromotions() {
     const res = await fetch("/api/admin/promotions");
     if (res.ok) setPromotions(await res.json());
-    setLoading(false);
   }
 
   async function handleAdd() {
@@ -70,7 +81,7 @@ export default function AdminPage() {
       if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
       setForm(EMPTY_FORM);
       setShowForm(false);
-      await fetchPromotions();
+      await fetchAll();
     } catch (e: unknown) {
       setError((e as Error).message);
     } finally {
@@ -112,13 +123,10 @@ export default function AdminPage() {
       <div className="max-w-3xl mx-auto">
 
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#388bfd20] text-[#388bfd] border border-[#388bfd40]">Admin</span>
-              <h1 className="text-lg font-bold text-[#e6edf3]">Promotions</h1>
-            </div>
-            <p className="text-xs text-[#484f58]">{active.length} active · {promotions.length} total</p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#388bfd20] text-[#388bfd] border border-[#388bfd40]">Admin</span>
+            <h1 className="text-lg font-bold text-[#e6edf3]">Console</h1>
           </div>
           <button
             onClick={() => setShowForm((v) => !v)}
@@ -129,6 +137,19 @@ export default function AdminPage() {
             </svg>
             Add repo
           </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 border-b border-[#21262d]">
+          {([["promotions", `Promotions (${active.length} active)`], ["requests", `Requests (${requests.length})`]] as const).map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setTab(id)}
+              className={`px-4 py-2 text-xs font-medium transition-colors border-b-2 -mb-px ${tab === id ? "border-[#388bfd] text-[#e6edf3]" : "border-transparent text-[#7d8590] hover:text-[#e6edf3]"}`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* Add form */}
@@ -201,56 +222,96 @@ export default function AdminPage() {
           <div className="flex items-center justify-center py-20">
             <div className="w-5 h-5 border-2 border-[#388bfd] border-t-transparent rounded-full animate-spin" />
           </div>
-        ) : promotions.length === 0 ? (
-          <div className="text-center py-20 text-[#484f58] text-sm">No promotions yet.</div>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {[...active, ...inactive].map((p) => {
-              const expired = p.ends_at <= now;
-              const statusColor = p.active && !expired ? "#3fb950" : expired ? "#484f58" : "#d29922";
-              const statusLabel = expired ? "Expired" : p.active ? "Active" : "Paused";
-              return (
-                <div key={p.id} className="rounded-xl border border-[#21262d] bg-[#161b22] p-4">
-                  <div className="flex items-start justify-between gap-3 flex-wrap">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] px-2 py-0.5 rounded-full border" style={{ color: statusColor, borderColor: statusColor + "40", background: statusColor + "10" }}>
-                          {statusLabel}
-                        </span>
-                        <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-sm font-mono font-semibold text-[#e6edf3] hover:text-[#58a6ff] transition-colors">
-                          {p.full_name}
-                        </a>
-                        {p.language && <span className="text-[10px] text-[#484f58]">{p.language}</span>}
+        ) : tab === "promotions" ? (
+          promotions.length === 0 ? (
+            <div className="text-center py-20 text-[#484f58] text-sm">No promotions yet.</div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {[...active, ...inactive].map((p) => {
+                const expired = p.ends_at <= now;
+                const statusColor = p.active && !expired ? "#3fb950" : expired ? "#484f58" : "#d29922";
+                const statusLabel = expired ? "Expired" : p.active ? "Active" : "Paused";
+                return (
+                  <div key={p.id} className="rounded-xl border border-[#21262d] bg-[#161b22] p-4">
+                    <div className="flex items-start justify-between gap-3 flex-wrap">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full border" style={{ color: statusColor, borderColor: statusColor + "40", background: statusColor + "10" }}>
+                            {statusLabel}
+                          </span>
+                          <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-sm font-mono font-semibold text-[#e6edf3] hover:text-[#58a6ff] transition-colors">
+                            {p.full_name}
+                          </a>
+                          {p.language && <span className="text-[10px] text-[#484f58]">{p.language}</span>}
+                        </div>
+                        {p.description && <p className="text-xs text-[#7d8590] mb-1.5 line-clamp-1">{p.description}</p>}
+                        <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-[#484f58]">
+                          <span>{fmt(p.starts_at)} → {fmt(p.ends_at)}</span>
+                          <span>Plan: {p.plan}</span>
+                          {p.contact && <span>Contact: {p.contact}</span>}
+                          {p.id.startsWith("admin_") && <span className="text-[#388bfd]">Manual</span>}
+                        </div>
                       </div>
-                      {p.description && <p className="text-xs text-[#7d8590] mb-1.5 line-clamp-1">{p.description}</p>}
-                      <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-[10px] text-[#484f58]">
-                        <span>{fmt(p.starts_at)} → {fmt(p.ends_at)}</span>
-                        <span>Plan: {p.plan}</span>
-                        {p.contact && <span>Contact: {p.contact}</span>}
-                        {p.id.startsWith("admin_") && <span className="text-[#388bfd]">Manual</span>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {!expired && (
+                      <div className="flex items-center gap-2 shrink-0">
+                        {!expired && (
+                          <button
+                            onClick={() => toggleActive(p.id, !p.active)}
+                            className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${p.active ? "border-[#d29922] text-[#d29922] hover:bg-[#d2992210]" : "border-[#3fb950] text-[#3fb950] hover:bg-[#3fb95010]"}`}
+                          >
+                            {p.active ? "Pause" : "Activate"}
+                          </button>
+                        )}
                         <button
-                          onClick={() => toggleActive(p.id, !p.active)}
-                          className={`px-3 py-1.5 text-xs rounded-md border transition-colors ${p.active ? "border-[#d29922] text-[#d29922] hover:bg-[#d2992210]" : "border-[#3fb950] text-[#3fb950] hover:bg-[#3fb95010]"}`}
+                          onClick={() => handleDelete(p.id)}
+                          className="px-3 py-1.5 text-xs rounded-md border border-[#da3633] text-[#f85149] hover:bg-[#da363310] transition-colors"
                         >
-                          {p.active ? "Pause" : "Activate"}
+                          Delete
                         </button>
-                      )}
-                      <button
-                        onClick={() => handleDelete(p.id)}
-                        className="px-3 py-1.5 text-xs rounded-md border border-[#da3633] text-[#f85149] hover:bg-[#da363310] transition-colors"
-                      >
-                        Delete
-                      </button>
+                      </div>
                     </div>
                   </div>
+                );
+              })}
+            </div>
+          )
+        ) : (
+          requests.length === 0 ? (
+            <div className="text-center py-20 text-[#484f58] text-sm">No requests yet.</div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {requests.map((r, i) => (
+                <div key={i} className="rounded-xl border border-[#21262d] bg-[#161b22] p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <a
+                        href={`https://github.com/${r.full_name}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-mono font-semibold text-[#e6edf3] hover:text-[#58a6ff] transition-colors"
+                      >
+                        {r.full_name}
+                      </a>
+                      {r.description && <p className="text-xs text-[#7d8590] mt-1 mb-1.5 line-clamp-2">{r.description}</p>}
+                      <div className="flex flex-wrap gap-x-4 text-[10px] text-[#484f58] mt-1">
+                        <span>{fmt(r.submitted_at)}</span>
+                        <span>{r.contact}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setForm({ full_name: r.full_name, description: r.description, contact: r.contact, plan: "month" });
+                        setTab("promotions");
+                        setShowForm(true);
+                      }}
+                      className="shrink-0 px-3 py-1.5 text-xs rounded-md border border-[#388bfd] text-[#388bfd] hover:bg-[#388bfd10] transition-colors"
+                    >
+                      Add →
+                    </button>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )
         )}
       </div>
     </div>

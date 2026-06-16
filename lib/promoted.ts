@@ -1,17 +1,24 @@
 import { kv } from "@vercel/kv";
 
 export type PromotedRepo = {
-  id: string;             // stripe checkout session id
-  full_name: string;      // owner/repo
+  id: string;
+  full_name: string;
   description: string;
-  url: string;            // github url
+  url: string;
   stars: number;
   language: string | null;
-  contact: string;        // email
+  contact: string;
   plan: "week" | "month";
-  starts_at: number;      // unix timestamp
+  starts_at: number;
   ends_at: number;
   active: boolean;
+};
+
+export type PromoteRequest = {
+  full_name: string;
+  description: string;
+  contact: string;
+  submitted_at: number;
 };
 
 const KEY = "promoted_repos";
@@ -28,15 +35,4 @@ export async function getActivePromotions(): Promise<PromotedRepo[]> {
 
 export async function addPromotion(repo: PromotedRepo): Promise<void> {
   await kv.lpush(KEY, repo);
-}
-
-export async function activatePromotion(sessionId: string): Promise<void> {
-  const all = await kv.lrange<PromotedRepo>(KEY, 0, -1);
-  for (let i = 0; i < all.length; i++) {
-    if (all[i].id === sessionId) {
-      all[i].active = true;
-      await kv.lset(KEY, i, all[i]);
-      return;
-    }
-  }
 }
